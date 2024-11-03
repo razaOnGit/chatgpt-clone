@@ -4,6 +4,12 @@ import { useNavigate } from "react-router-dom";
 import DescriptionRounded from "@mui/icons-material/DescriptionRounded";
 import FormatAlignLeftOutlined from "@mui/icons-material/FormatAlignLeftOutlined";
 import ChatRounded from "@mui/icons-material/ChatRounded";
+import Javascript from "@mui/icons-material/JavascriptOutlined";
+import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
+
+
+
+//import { useTheme } from '@mui/material/styles';
 const Homepage = () => {
   const navigate = useNavigate();
   return (
@@ -122,7 +128,7 @@ const Homepage = () => {
               },
             }}
           >
-            <ChatRounded
+            <Javascript
               sx={{ fontSize: 80, color: "primary.main", mt: 2, ml: 2 }}
             />
             <Stack p={3} pt={0}>
@@ -154,7 +160,7 @@ const Homepage = () => {
               },
             }}
           >
-            <ChatRounded
+            <RocketLaunchIcon 
               sx={{ fontSize: 80, color: "primary.main", mt: 2, ml: 2 }}
             />
             <Stack p={3} pt={0}>
