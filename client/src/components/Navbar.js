@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Typography, useTheme } from "@mui/material";
+import { Box, Link,Typography, useTheme } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { NavLink } from "react-router-dom";
 import axios from "axios";
@@ -33,21 +33,21 @@ const Navbar = () => {
       </Typography>
       {loggedIn ? (
         <>
-          <NavLink to="/" p={1}>
+          <Link href="/" p={1}>
             Home
-          </NavLink>
-          <NavLink to="/login" onClick={handleLogout} p={1}>
+          </Link>
+          <Link href="/login" onClick={handleLogout} p={1}>
             Logout
-          </NavLink>
+          </Link>
         </>
       ) : (
         <>
-          <NavLink to="/register" p={1}>
+          <Link href="/register" p={1}>
             Sign Up
-          </NavLink>
-          <NavLink to="/login" p={1}>
+          </Link>
+          <Link href="/login" p={1}>
             Sign In
-          </NavLink>
+          </Link>
         </>
       )}
     </Box>
