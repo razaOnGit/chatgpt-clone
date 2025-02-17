@@ -46,21 +46,29 @@ userSchema.methods.matchPassword = async function (password) {
 };
 
 //SIGN TOKEN
+//SIGN TOKEN
 userSchema.methods.getSignedToken = function (res) {
-  const acccesToken = JWT.sign(
-    { id: this._id },
-    process.env.JWT_ACCESS_SECRET,
-    { expiresIn: process.env.JWT_ACCESS_EXPIREIN }
-  );
-  const refreshToken = JWT.sign(
-    { id: this._id },
-    process.env.JWT_REFRESH_TOKEN,
-    { expiresIn: process.env.JWT_REFRESH_EXIPREIN }
-  );
-  res.cookie("refreshToken", `${refreshToken}`, {
-    maxAge: 86400 * 7000,
-    httpOnly: true,
-  });
+  try {
+    const accessToken = JWT.sign(
+      { id: this._id },
+      process.env.JWT_ACCESS_SECRET,
+      { expiresIn: process.env.JWT_ACCESS_EXPIREIN }
+    );
+    const refreshToken = JWT.sign(
+      { id: this._id },
+      process.env.JWT_REFRESH_TOKEN,
+      { expiresIn: process.env.JWT_REFRESH_EXPIREIN }
+    );
+    res.cookie("refreshToken", `${refreshToken}`, {
+      maxAge: 86400 * 7000,
+      httpOnly: true,
+    });
+    
+    return accessToken;
+  } catch (error) {
+    console.error('Token generation error:', error);
+    throw error;
+  }
 };
 
 const User = mongoose.model("User", userSchema);

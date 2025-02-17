@@ -12,43 +12,70 @@ exports.sendToken = (user, statusCode, res) => {
 };
 
 //REGISTER
-exports.registerContoller = async (req, res, next) => {
+exports.registerContoller = async (req, res) => {
   try {
     const { username, email, password } = req.body;
-    //exisitng user
-    const exisitingEmail = await userModel.findOne({ email });
-    if (exisitingEmail) {
-      return next(new errorResponse("Email is already register", 500));
+    //existing user check
+    const existingEmail = await userModel.findOne({ email });
+    if (existingEmail) {
+      return res.status(200).json({
+        success: false,
+        message: "Email is already registered"
+      });
     }
     const user = await userModel.create({ username, email, password });
-    this.sendToken(user, 201, res);
+    const token = user.getSignedToken(res);
+    return res.status(201).json({
+      success: true,
+      token,
+      message: "Registration successful"
+    });
   } catch (error) {
     console.log(error);
-    next(error);
+    return res.status(200).json({
+      success: false,
+      message: "Error in registration"
+    });
   }
 };
 
 //LOGIN
-exports.loginController = async (req, res, next) => {
+exports.loginController = async (req, res) => {
   try {
     const { email, password } = req.body;
     //validation
     if (!email || !password) {
-      return next(new errorResponse("Please provide email or password"));
+      return res.status(200).json({
+        success: false,
+        message: "Please provide email and password"
+      });
     }
     const user = await userModel.findOne({ email });
     if (!user) {
-      return next(new errorResponse("Invalid Creditial", 401));
+      return res.status(200).json({
+        success: false,
+        message: "Invalid credentials"
+      });
     }
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
-      return next(new errorResponse("Invalid Creditial", 401));
+      return res.status(200).json({
+        success: false,
+        message: "Invalid credentials"
+      });
     }
-    //res
-    this.sendToken(user, 200, res);
+    const token = user.getSignedToken(res);
+    return res.status(200).json({
+      success: true,
+      token,
+      message: "Login successful"
+    });
   } catch (error) {
     console.log(error);
-    next(error);
+    return res.status(200).json({
+      success: false,
+      message: "Error in login"
+    });
   }
 };
 
