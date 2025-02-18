@@ -7,8 +7,9 @@ import toast from "react-hot-toast";
 const Navbar = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-  const loggedIn = JSON.parse(localStorage.getItem("authToken"));
-
+  //check if user is logged in
+  const authToken = localStorage.getItem("authToken");
+  const loggedIn = authToken ? true : false; 
   //handle logout
   const handleLogout = async () => {
     try {

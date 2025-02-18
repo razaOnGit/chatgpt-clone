@@ -16,33 +16,46 @@ import {
 const Login = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-  //media
   const isNotMobile = useMediaQuery("(min-width: 1000px)");
-  // states
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  //register ctrl
+  const handleInputChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
-      await axios.post("/api/v1/auth/login", { email, password });
-      toast.success("Login Successfully");
-      localStorage.setItem("authToken", true);
-      navigate("/");
-    } catch (err) {
-      console.log(error);
-      if (err.response.data.error) {
-        setError(err.response.data.error);
-      } else if (err.message) {
-        setError(err.message);
+      const response = await axios.post("/api/v1/auth/login", formData);
+      
+      if (response.data.success) {
+        localStorage.setItem("authToken", response.data.token);
+        toast.success(response.data.message || "Login Successful");
+        navigate("/");
+      } else {
+        setError(response.data.message || "Login failed");
+        toast.error(response.data.message || "Login failed");
       }
-      setTimeout(() => {
-        setError("");
-      }, 5000);
+    } catch (err) {
+      console.error("Login error:", err);
+      const errorMessage = err.response?.data?.message || err.message || "An error occurred during login";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
+
   return (
     <Box
       width={isNotMobile ? "40%" : "80%"}
@@ -52,7 +65,7 @@ const Login = () => {
       sx={{ boxShadow: 5 }}
       backgroundColor={theme.palette.background.alt}
     >
-      <Collapse in={error}>
+      <Collapse in={Boolean(error)}>
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
@@ -61,26 +74,26 @@ const Login = () => {
         <Typography variant="h3">Sign In</Typography>
 
         <TextField
-          label="email"
+          label="Email"
           type="email"
+          name="email"
           required
           margin="normal"
           fullWidth
-          value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
-          }}
+          value={formData.email}
+          onChange={handleInputChange}
+          error={Boolean(error)}
         />
         <TextField
-          label="password"
+          label="Password"
           type="password"
+          name="password"
           required
           margin="normal"
           fullWidth
-          value={password}
-          onChange={(e) => {
-            setPassword(e.target.value);
-          }}
+          value={formData.password}
+          onChange={handleInputChange}
+          error={Boolean(error)}
         />
         <Button
           type="submit"
@@ -88,11 +101,12 @@ const Login = () => {
           variant="contained"
           size="large"
           sx={{ color: "white", mt: 2 }}
+          disabled={loading}
         >
-          Sign In
+          {loading ? "Signing in..." : "Sign In"}
         </Button>
         <Typography mt={2}>
-          Dont have an account ? <Link to="/register">Please Register</Link>
+          Don't have an account? <Link to="/register">Please Register</Link>
         </Typography>
       </form>
     </Box>
