@@ -1,8 +1,44 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const fs = require("fs");
+const colors = require("colors");
 
-// Initialize Gemini API
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// Verify API key with better error handling
+const initializeGemini = () => {
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+    
+    if (!GEMINI_API_KEY) {
+        console.error("GEMINI_API_KEY is missing in environment variables".red);
+        throw new Error("GEMINI_API_KEY is missing in environment variables");
+    }
+
+    try {
+        const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+        console.log("Gemini API initialized successfully".green);
+        return genAI;
+    } catch (error) {
+        console.error("Failed to initialize Gemini API:".red, error);
+        throw error;
+    }
+};
+
+const genAI = initializeGemini();
+
+// ...rest of your existing code...
+// Add a test function to verify API connection
+const testGeminiConnection = async () => {
+  try {
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const result = await model.generateContent("Test connection");
+    console.log("Gemini API connection test successful".green);
+  } catch (error) {
+    console.error("Gemini API connection test failed:".red, error);
+    throw error;
+  }
+};
+
+// Test connection on startup
+testGeminiConnection();
+
+// ...rest of your existing exports...
 
 // Text Summarization (Long to Short)
 exports.summarizeText = async (req, res) => {
