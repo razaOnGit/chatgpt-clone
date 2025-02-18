@@ -32,7 +32,6 @@ connectDB();
 
 //routes path
 const authRoutes = require("./routes/authRoutes");
-
 const geminiRoutes = require("./routes/geminiRoutes");
 
 //rest object
@@ -45,16 +44,11 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(morgan("dev"));
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3000;
 
 //API routes
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/gemini", geminiRoutes);
 
-//listen server
-app.listen(PORT, () => {
-  console.log(
-    `Server Running in ${process.env.DEV_MODE} mode on port no ${PORT}`.bgCyan
-      .white
-  );
-});
+// Export the app for Vercel serverless functions
+module.exports = app;
