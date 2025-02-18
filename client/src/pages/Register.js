@@ -93,7 +93,7 @@ const Register = () => {
           error={Boolean(error)}
         />
         <TextField
-          label="minimum password 6 digits or characters"
+          label="minimum password length- 6 digits or characters"
           name="password"
           type="password"
           required

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
 import {
@@ -12,37 +12,46 @@ import {
   Alert,
   Collapse,
   Card,
+  CircularProgress,
 } from "@mui/material";
 
 const Summary = () => {
   const theme = useTheme();
-  const navigate = useNavigate();
-  //media
   const isNotMobile = useMediaQuery("(min-width: 1000px)");
-  // states
-  const [text, settext] = useState("");
+  
+  const [text, setText] = useState("");
   const [summary, setSummary] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  //register ctrl
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!text.trim()) return;
+
+    setLoading(true);
+    setError("");
     try {
-      const { data } = await axios.post("/api/v1/openai/summary", { text });
-      console.log(data);
-      setSummary(data);
-    } catch (err) {
-      console.log(error);
-      if (err.response.data.error) {
-        setError(err.response.data.error);
-      } else if (err.message) {
-        setError(err.message);
+      const { data } = await axios.post("/api/gemini/summarize", {
+        text: text
+      });
+
+      if (data.success) {
+        setSummary(data.summary);
+        toast.success("Text summarized successfully!");
+      } else {
+        setError(data.message || "Failed to summarize text");
+        toast.error(data.message || "Failed to summarize text");
       }
-      setTimeout(() => {
-        setError("");
-      }, 5000);
+    } catch (err) {
+      console.error("Summarization error:", err);
+      const errorMessage = err.response?.data?.message || "Error summarizing text";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
+
   return (
     <Box
       width={isNotMobile ? "40%" : "80%"}
@@ -52,7 +61,7 @@ const Summary = () => {
       sx={{ boxShadow: 5 }}
       backgroundColor={theme.palette.background.alt}
     >
-      <Collapse in={error}>
+      <Collapse in={Boolean(error)}>
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
@@ -61,16 +70,16 @@ const Summary = () => {
         <Typography variant="h3">Summarize Text</Typography>
 
         <TextField
-          placeholder="add your text"
+          placeholder="Enter text to summarize..."
           type="text"
-          multiline={true}
+          multiline
+          rows={6}
           required
           margin="normal"
           fullWidth
           value={text}
-          onChange={(e) => {
-            settext(e.target.value);
-          }}
+          onChange={(e) => setText(e.target.value)}
+          disabled={loading}
         />
 
         <Button
@@ -79,53 +88,43 @@ const Summary = () => {
           variant="contained"
           size="large"
           sx={{ color: "white", mt: 2 }}
+          disabled={loading || !text.trim()}
         >
-          Submit
+          {loading ? <CircularProgress size={24} color="inherit" /> : "Summarize"}
         </Button>
         <Typography mt={2}>
-          not this tool ? <Link to="/">GO BACK</Link>
+          Not this tool? <Link to="/">GO BACK</Link>
         </Typography>
       </form>
 
-      {summary ? (
-        <Card
-          sx={{
-            mt: 4,
-            border: 1,
-            boxShadow: 0,
-            height: "500px",
-            borderRadius: 5,
-            borderColor: "natural.medium",
-            bgcolor: "background.default",
-          }}
-        >
+      <Card
+        sx={{
+          mt: 4,
+          border: 1,
+          boxShadow: 0,
+          height: "500px",
+          borderRadius: 5,
+          borderColor: "natural.medium",
+          bgcolor: "background.default",
+          overflow: "auto",
+        }}
+      >
+        {summary ? (
           <Typography p={2}>{summary}</Typography>
-        </Card>
-      ) : (
-        <Card
-          sx={{
-            mt: 4,
-            border: 1,
-            boxShadow: 0,
-            height: "500px",
-            borderRadius: 5,
-            borderColor: "natural.medium",
-            bgcolor: "background.default",
-          }}
-        >
+        ) : (
           <Typography
             variant="h5"
             color="natural.main"
             sx={{
               textAlign: "center",
-              verticalAlign: "middel",
+              verticalAlign: "middle",
               lineHeight: "450px",
             }}
           >
-            Summary Will Apprea Here
+            {loading ? "Summarizing..." : "Summary Will Appear Here"}
           </Typography>
-        </Card>
-      )}
+        )}
+      </Card>
     </Box>
   );
 };

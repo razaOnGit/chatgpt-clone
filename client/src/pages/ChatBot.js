@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
 import {
@@ -12,37 +12,47 @@ import {
   Alert,
   Collapse,
   Card,
+  CircularProgress,
 } from "@mui/material";
 
 const ChatBot = () => {
   const theme = useTheme();
-  const navigate = useNavigate();
-  //media
   const isNotMobile = useMediaQuery("(min-width: 1000px)");
-  // states
-  const [text, settext] = useState("");
-  const [response, setResponse] = useState("");
+  
+  const [message, setMessage] = useState("");
+  const [conversation, setConversation] = useState([]);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  //register ctrl
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!message.trim()) return;
+
+    setLoading(true);
     try {
-      const { data } = await axios.post("/api/v1/openai/chatbot", { text });
-      console.log(data);
-      setResponse(data);
-    } catch (err) {
-      console.log(error);
-      if (err.response.data.error) {
-        setError(err.response.data.error);
-      } else if (err.message) {
-        setError(err.message);
+      const { data } = await axios.post("/api/gemini/chat", {
+        message,
+        conversationHistory: conversation
+      });
+
+      if (data.success) {
+        setConversation(data.conversationHistory);
+        setMessage("");
+        toast.success("Response received!");
+      } else {
+        setError("Failed to get response");
+        toast.error("Failed to get response");
       }
-      setTimeout(() => {
-        setError("");
-      }, 5000);
+    } catch (err) {
+      console.error("Chat error:", err);
+      const errorMessage = err.response?.data?.message || "Something went wrong";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
+
   return (
     <Box
       width={isNotMobile ? "40%" : "80%"}
@@ -52,25 +62,25 @@ const ChatBot = () => {
       sx={{ boxShadow: 5 }}
       backgroundColor={theme.palette.background.alt}
     >
-      <Collapse in={error}>
+      <Collapse in={Boolean(error)}>
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       </Collapse>
       <form onSubmit={handleSubmit}>
-        <Typography variant="h3">Ask with Chatbot</Typography>
+        <Typography variant="h3">Chat with Gemini AI</Typography>
 
         <TextField
-          placeholder="add your text"
+          placeholder="Ask anything..."
           type="text"
-          multiline={true}
+          multiline
+          rows={4}
           required
           margin="normal"
           fullWidth
-          value={text}
-          onChange={(e) => {
-            settext(e.target.value);
-          }}
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          disabled={loading}
         />
 
         <Button
@@ -79,53 +89,64 @@ const ChatBot = () => {
           variant="contained"
           size="large"
           sx={{ color: "white", mt: 2 }}
+          disabled={loading || !message.trim()}
         >
-          Chat
+          {loading ? <CircularProgress size={24} color="inherit" /> : "Send Message"}
         </Button>
         <Typography mt={2}>
-          not this tool ? <Link to="/">GO BACK</Link>
+          Not this tool? <Link to="/">GO BACK</Link>
         </Typography>
       </form>
 
-      {response ? (
-        <Card
-          sx={{
-            mt: 4,
-            border: 1,
-            boxShadow: 0,
-            height: "500px",
-            borderRadius: 5,
-            borderColor: "natural.medium",
-            bgcolor: "background.default",
-          }}
-        >
-          <Typography p={2}>{response}</Typography>
-        </Card>
-      ) : (
-        <Card
-          sx={{
-            mt: 4,
-            border: 1,
-            boxShadow: 0,
-            height: "500px",
-            borderRadius: 5,
-            borderColor: "natural.medium",
-            bgcolor: "background.default",
-          }}
-        >
+      <Card
+        sx={{
+          mt: 4,
+          border: 1,
+          boxShadow: 0,
+          height: "500px",
+          borderRadius: 5,
+          borderColor: "natural.medium",
+          bgcolor: "background.default",
+          overflow: "auto",
+          padding: 2
+        }}
+      >
+        {conversation.length > 0 ? (
+          conversation.map((msg, index) => (
+            <Box
+              key={index}
+              sx={{
+                mb: 2,
+                p: 2,
+                borderRadius: 2,
+                backgroundColor: msg.role === "user" ? 
+                  theme.palette.primary.light : 
+                  theme.palette.background.alt,
+                color: msg.role === "user" ? 
+                  theme.palette.primary.contrastText : 
+                  theme.palette.text.primary
+              }}
+            >
+              <Typography variant="body1">
+                <strong>{msg.role === "user" ? "You: " : "AI: "}</strong>
+                {msg.content}
+              </Typography>
+            </Box>
+          ))
+        ) : (
           <Typography
             variant="h5"
             color="natural.main"
             sx={{
               textAlign: "center",
-              verticalAlign: "middel",
+              verticalAlign: "middle",
               lineHeight: "450px",
             }}
           >
-            Bot Response
+            Start a conversation with Gemini AI
           </Typography>
-        </Card>
-      )}
+        )}
+      </Card>
     </Box>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-//import toast from "react-hot-toast";
+import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
 import axios from "axios";
 import {
   Box,
@@ -12,39 +12,46 @@ import {
   Alert,
   Collapse,
   Card,
+  CircularProgress,
 } from "@mui/material";
 
 const JsConverter = () => {
   const theme = useTheme();
-  const navigate = useNavigate();
-  //media
   const isNotMobile = useMediaQuery("(min-width: 1000px)");
-  // states
-  const [text, settext] = useState("");
+  
+  const [text, setText] = useState("");
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  //register ctrl
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!text.trim()) return;
+
+    setLoading(true);
+    setError("");
     try {
-      const { data } = await axios.post("/api/v1/openai/js-converter", {
-        text,
+      const { data } = await axios.post("/api/gemini/code", {
+        description: text
       });
-      console.log(data);
-      setCode(data);
-    } catch (err) {
-      console.log(error);
-      if (err.response.data.error) {
-        setError(err.response.data.error);
-      } else if (err.message) {
-        setError(err.message);
+
+      if (data.success) {
+        setCode(data.code);
+        toast.success("Code converted successfully!");
+      } else {
+        setError(data.message || "Failed to convert code");
+        toast.error(data.message || "Failed to convert code");
       }
-      setTimeout(() => {
-        setError("");
-      }, 5000);
+    } catch (err) {
+      console.error("Conversion error:", err);
+      const errorMessage = err.response?.data?.message || "Error converting to JavaScript";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
+
   return (
     <Box
       width={isNotMobile ? "40%" : "80%"}
@@ -54,25 +61,25 @@ const JsConverter = () => {
       sx={{ boxShadow: 5 }}
       backgroundColor={theme.palette.background.alt}
     >
-      <Collapse in={error}>
+      <Collapse in={Boolean(error)}>
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       </Collapse>
       <form onSubmit={handleSubmit}>
-        <Typography variant="h3">JS Converter</Typography>
+        <Typography variant="h3">English to JavaScript Converter</Typography>
 
         <TextField
-          placeholder="add your text"
+          placeholder="Describe what you want to convert to JavaScript..."
           type="text"
-          multiline={true}
+          multiline
+          rows={4}
           required
           margin="normal"
           fullWidth
           value={text}
-          onChange={(e) => {
-            settext(e.target.value);
-          }}
+          onChange={(e) => setText(e.target.value)}
+          disabled={loading}
         />
 
         <Button
@@ -81,56 +88,45 @@ const JsConverter = () => {
           variant="contained"
           size="large"
           sx={{ color: "white", mt: 2 }}
+          disabled={loading || !text.trim()}
         >
-          Convert
+          {loading ? <CircularProgress size={24} color="inherit" /> : "Convert to JavaScript"}
         </Button>
         <Typography mt={2}>
-          not this tool ? <Link to="/">GO BACK</Link>
+          Not this tool? <Link to="/">GO BACK</Link>
         </Typography>
       </form>
 
-      {code ? (
-        <Card
-          sx={{
-            mt: 4,
-            border: 1,
-            boxShadow: 0,
-            height: "500px",
-            borderRadius: 5,
-            borderColor: "natural.medium",
-            bgcolor: "background.default",
-            overflow: "auto",
-          }}
-        >
-          <pre>
-            <Typography p={2}>{code}</Typography>
+      <Card
+        sx={{
+          mt: 4,
+          border: 1,
+          boxShadow: 0,
+          height: "500px",
+          borderRadius: 5,
+          borderColor: "natural.medium",
+          bgcolor: "background.default",
+          overflow: "auto",
+        }}
+      >
+        {code ? (
+          <pre style={{ margin: 0, padding: '1rem' }}>
+            <code>{code}</code>
           </pre>
-        </Card>
-      ) : (
-        <Card
-          sx={{
-            mt: 4,
-            border: 1,
-            boxShadow: 0,
-            height: "500px",
-            borderRadius: 5,
-            borderColor: "natural.medium",
-            bgcolor: "background.default",
-          }}
-        >
+        ) : (
           <Typography
             variant="h5"
             color="natural.main"
             sx={{
               textAlign: "center",
-              verticalAlign: "middel",
+              verticalAlign: "middle",
               lineHeight: "450px",
             }}
           >
-            Your Code Will Apprea Here
+            {loading ? "Converting..." : "Your JavaScript Code Will Appear Here"}
           </Typography>
-        </Card>
-      )}
+        )}
+      </Card>
     </Box>
   );
 };
