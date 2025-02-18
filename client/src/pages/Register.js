@@ -16,33 +16,45 @@ import {
 const Register = () => {
   const theme = useTheme();
   const navigate = useNavigate();
-  //media
   const isNotMobile = useMediaQuery("(min-width: 1000px)");
-  // states
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+  });
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  //register ctrl
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
-      await axios.post("/api/v1/auth/register", { username, email, password });
-      toast.success("User Register Successfully");
-      navigate("/login");
-    } catch (err) {
-      console.log(error);
-      if (err.response.data.error) {
-        setError(err.response.data.error);
-      } else if (err.message) {
-        setError(err.message);
+      const response = await axios.post("/api/v1/auth/register", formData);
+      if (response.data.success) {
+        toast.success(response.data.message || "Registration successful");
+        navigate("/login");
+      } else {
+        setError(response.data.message || "Registration failed");
+        toast.error(response.data.message || "Registration failed");
       }
-      setTimeout(() => {
-        setError("");
-      }, 5000);
+    } catch (err) {
+      console.error("Registration error:", err);
+      const errorMessage = err.response?.data?.message || err.message || "Registration failed";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
+
   return (
     <Box
       width={isNotMobile ? "40%" : "80%"}
@@ -52,46 +64,44 @@ const Register = () => {
       sx={{ boxShadow: 5 }}
       backgroundColor={theme.palette.background.alt}
     >
-      <Collapse in={error}>
+      <Collapse in={Boolean(error)}>
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       </Collapse>
       <form onSubmit={handleSubmit}>
-
-
         <Typography variant="h3">Sign Up</Typography>
         <TextField
-          label="username"
+          label="Username"
+          name="username"
           required
           margin="normal"
           fullWidth
-          value={username}
-          onChange={(e) => {
-            setUsername(e.target.value);
-          }}
+          value={formData.username}
+          onChange={handleChange}
+          error={Boolean(error)}
         />
         <TextField
-          label="email"
+          label="Email"
+          name="email"
           type="email"
           required
           margin="normal"
           fullWidth
-          value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
-          }}
+          value={formData.email}
+          onChange={handleChange}
+          error={Boolean(error)}
         />
         <TextField
-          label="password"
+          label="minimum password 6 digits or characters"
+          name="password"
           type="password"
           required
           margin="normal"
           fullWidth
-          value={password}
-          onChange={(e) => {
-            setPassword(e.target.value);
-          }}
+          value={formData.password}
+          onChange={handleChange}
+          error={Boolean(error)}
         />
         <Button
           type="submit"
@@ -99,11 +109,12 @@ const Register = () => {
           variant="contained"
           size="large"
           sx={{ color: "white", mt: 2 }}
+          disabled={loading}
         >
-          Sign Up
+          {loading ? "Signing up..." : "Sign Up"}
         </Button>
         <Typography mt={2}>
-          Already have an account ? <Link href="/login">Please Login</Link>
+          Already have an account? <Link to="/login">Please Login</Link>
         </Typography>
       </form>
     </Box>
