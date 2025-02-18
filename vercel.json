@@ -1,7 +1,5 @@
-
 {
   "version": 2,
-  "name": "chatgpt-clone",
   "builds": [
     {
       "src": "server.js",
@@ -10,15 +8,14 @@
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "server.js"
-    },
-    {
       "src": "/(.*)",
       "dest": "server.js"
     }
   ],
-  "env": {
-    "NODE_ENV": "production"
+  "functions": {
+    "server.js": {
+      "memory": 1024,
+      "maxDuration": 30
+    }
   }
 }
