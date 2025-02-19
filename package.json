@@ -4,7 +4,7 @@
   "description": "chat gpt clone",
   "main": "server.js",
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=18.0.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -36,7 +36,7 @@
     "openai": "^4.85.1",
     "react-hot-toast": "^2.4.1",
     "react-scripts": "^5.0.1",
-    "gopd": "^1.0.1"
+    "gopd": "^1.0.3"
 
   }
 }
