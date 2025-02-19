@@ -35,6 +35,8 @@
     "nodemon": "^3.1.7",
     "openai": "^4.85.1",
     "react-hot-toast": "^2.4.1",
-    "react-scripts": "^5.0.1"
+    "react-scripts": "^5.0.1",
+    "gopd": "^1.0.1"
+
   }
 }
