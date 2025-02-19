@@ -1,18 +1,15 @@
 {
-  "name": "chatgpt-clone",
+  "name": "chatgpt-clone-backend",
   "version": "1.0.0",
-  "description": "chat gpt clone",
+  "description": "ChatGPT Clone Backend",
   "main": "server.js",
   "engines": {
     "node": ">=18.0.0"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "server": "nodemon server.js",
     "start": "node server.js",
-    "client": "npm start --prefix ./client",
-    "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "vercel-build": "cd client && npm install && npm run build"
+    "dev": "nodemon server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
@@ -22,7 +19,6 @@
     "body-parser": "^1.20.3",
     "buffer": "^6.0.3",
     "colors": "^1.4.0",
-    "concurrently": "^9.0.1",
     "cookie": "^1.0.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
@@ -33,12 +29,9 @@
     "mongoose": "^8.8.0",
     "morgan": "^1.10.0",
     "node-fetch": "^3.3.2",
-    "nodemon": "^3.1.7",
-    "openai": "^4.85.1",
-    "react-hot-toast": "^2.4.1",
-    "react-scripts": "^5.0.1"
+    "openai": "^4.85.1"
   },
   "devDependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
+    "nodemon": "^3.1.7"
   }
 }
