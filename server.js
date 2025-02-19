@@ -38,5 +38,13 @@ app.use(errorHandler);
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/gemini", geminiRoutes);
 
+// Only start server in development
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 8080;
+  app.listen(PORT, () => {
+    console.log(`Server Running on port ${PORT}`.bgCyan.white);
+  });
+}
+
 // Export the app for Vercel serverless functions
 module.exports = app;
