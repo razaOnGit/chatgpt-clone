@@ -20,18 +20,19 @@ api.interceptors.request.use((config) => {
 });
 
 // API endpoints
+// api.js
 export const geminiAPI = {
   summarize: (text) => api.post('/gemini/summarize', { text }),
   generateParagraph: (topic) => api.post('/gemini/paragraph', { topic }),
   chat: (message) => api.post('/gemini/chat', { message }),
-  convertToJs: (text) => api.post('/gemini/jsconvert', { text }),
-  imageToText: (image) => api.post('/gemini/imagetotext', { image }),
+  convertToJs: (text) => api.post('/gemini/code', { text }), // Changed to match backend route
+  imageToText: (image) => api.post('/gemini/image-to-text', { image }) // Match backend route
 };
 
 export const authAPI = {
-  login: (credentials) => api.post('/v1/auth/login', credentials),
-  register: (userData) => api.post('/v1/auth/register', userData),
-  logout: () => api.post('/v1/auth/logout'),
+  login: (credentials) => api.post('/api/v1/auth/login', credentials), // Added /api prefix
+  register: (userData) => api.post('/api/v1/auth/register', userData), // Added /api prefix
+  logout: () => api.post('/api/v1/auth/logout'), // Added /api prefix
 };
 
 export default api;
