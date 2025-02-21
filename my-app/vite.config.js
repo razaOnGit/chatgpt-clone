@@ -1,9 +1,50 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
+
+// 1-mothod  for deploy on vercel  
+// import { defineConfig } from "vite";
+// import react from "@vitejs/plugin-react";
+
+// export default defineConfig({
+//   plugins: [react()],
+//   esbuild: {
+
+//   },
+// });
+
+// 2 method for deploy on vercel
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  esbuild: {
-
-  },
+  server: {
+    proxy: {
+      '/api': 'http://localhost:8080'
+    }
+  }
 });
+
+
+
+// 3 method for deploy on vercel
+// import { defineConfig } from 'vite';
+// import react from '@vitejs/plugin-react';
+
+// export default defineConfig({
+//   plugins: [react()],
+//   build: {
+//     outDir: 'dist' // Vercel will serve from this folder
+//   },
+//   // This proxy is useful for local development. In production,
+//   // update your API URLs (via environment variables) so they point
+//   // to your deployed backend.
+//   server: {
+//     proxy: {
+//       '/api': {
+//         target: 'http://localhost:8080', // Change this as needed for local testing
+//         changeOrigin: true,
+//         secure: false,
+//       },
+//     },
+//   },
+// });
+

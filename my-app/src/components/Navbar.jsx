@@ -59,14 +59,17 @@ const Navbar = () => {
       </Typography>
       
       <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-        <Button
-          onClick={() => navigate("/")}
-          sx={buttonStyle}
-        >
-          Home
-        </Button>
+        {loggedIn && (
+          <Button
+            onClick={() => navigate("/")}
+            sx={buttonStyle}
+          >
+            Home
+          </Button>
+        )}
         
         {loggedIn ? (
+
           <Button
             onClick={handleLogout}
             disabled={isLoggingOut}
