@@ -39,12 +39,10 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/gemini", geminiRoutes);
 
 // Only start server in development
-if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 8080;
-  app.listen(PORT, () => {
-    console.log(`Server Running on port ${PORT}`.bgCyan.white);
-  });
-}
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => {
+  console.log(`Server Running on port ${PORT}`.bgCyan.white);
+});
 
 app.get("/", (req, res) => {
   res.json({ message: "Backend is running successfully!" });
