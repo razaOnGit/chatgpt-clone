@@ -1,6 +1,6 @@
 {
     "rewrites": [
-      { "source": "/api/(.*)", "destination": "https://ai2backend.vercel.app//api/$1" },
-      { "source": "/gemini/(.*)", "destination": "https://ai2backend.vercel.app//gemini/$1" }
+      { "source": "/api/(.*)", "destination": "https://ai2backend.vercel.app/api/$1" },
+      { "source": "/gemini/(.*)", "destination": "https://ai2backend.vercel.app/gemini/$1" }
     ]
   }
