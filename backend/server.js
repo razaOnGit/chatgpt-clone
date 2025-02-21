@@ -48,7 +48,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 app.get("/", (req, res) => {
-  res.json({ message: "Backend is running successfully!" });
+  res.json({ message: "Backend is running suy!" });
 });
 
 // Export the app for Vercel serverless functions
