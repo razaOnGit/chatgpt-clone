@@ -35,8 +35,8 @@ app.use(morgan("dev"));
 app.use(errorHandler);
 
 // API routes
-// app.use("/api/v1/auth", authRoutes);
-app.use("/", authRoutes);
+app.use("/api/v1/auth", authRoutes);
+// app.use("/", authRoutes);
 app.use("/gemini", geminiRoutes);
 
 // Only start server in development
@@ -48,7 +48,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 app.get("/", (req, res) => {
-  res.json({ message: "Backend is running suy!" });
+  res.json({ message: "Backend is running success!" });
 });
 
 // Export the app for Vercel serverless functions
