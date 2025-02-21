@@ -35,8 +35,9 @@ app.use(morgan("dev"));
 app.use(errorHandler);
 
 // API routes
-app.use("/api/v1/auth", authRoutes);
-app.use("/api/gemini", geminiRoutes);
+// app.use("/api/v1/auth", authRoutes);
+app.use("/", authRoutes);
+app.use("/gemini", geminiRoutes);
 
 // Only start server in development
 if (process.env.NODE_ENV !== 'production') {
