@@ -41,7 +41,7 @@ const Login = () => {
       if (response.data.success) {
         localStorage.setItem("authToken", response.data.token);
         toast.success(response.data.message || "Login Successful");
-        navigate("/");
+        navigate("/homepage");
       } else {
         setError(response.data.message || "Login failed");
         toast.error(response.data.message || "Login failed");

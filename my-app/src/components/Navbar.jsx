@@ -61,7 +61,7 @@ const Navbar = () => {
       <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
         {loggedIn && (
           <Button
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/homepage")}
             sx={buttonStyle}
           >
             Home
