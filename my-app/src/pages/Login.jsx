@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { authAPI } from '../api';
 import {
   Box,
   Typography,
@@ -36,8 +37,8 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await axios.post("/api/v1/auth/login", formData);
-      
+      // const response = await axios.post("/api/v1/auth/login", formData);
+      const response = await authAPI.login(formData);
       if (response.data.success) {
         localStorage.setItem("authToken", response.data.token);
         toast.success(response.data.message || "Login Successful");
