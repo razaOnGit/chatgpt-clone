@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || "https://ai2backend.vercel.app"; // Fallback for local development
+const API_URL = import.meta.env.VITE_API_URL ; // Fallback for local development
 
 const api = axios.create({
   baseURL: API_URL,
