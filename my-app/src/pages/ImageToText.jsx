@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
@@ -7,44 +7,161 @@ import {
   Typography,
   useTheme,
   useMediaQuery,
-  TextField,
   Button,
   Alert,
   Collapse,
   Card,
   CircularProgress,
 } from "@mui/material";
+import * as pdfjsLib from "pdfjs-dist/build/pdf"; // For PDF handling
+
+// Set worker source for pdf.js
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 const ImageToText = () => {
   const theme = useTheme();
   const isNotMobile = useMediaQuery("(min-width: 1000px)");
-  
-  const [imageUrl, setImageUrl] = useState("");
+
+  const [fileUrl, setFileUrl] = useState(""); // Base64 data URL for image or PDF
+  const [fileType, setFileType] = useState(""); // "image" or "pdf"
   const [description, setDescription] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [cameraActive, setCameraActive] = useState(false);
 
+  const fileInputRef = useRef(null);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
+  let stream = null;
+
+  // Cleanup camera stream on unmount
+  useEffect(() => {
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, []);
+
+  // Handle file selection (image or PDF)
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const validTypes = ["image/jpeg", "image/png", "application/pdf"];
+    if (!validTypes.includes(file.type)) {
+      setError("Please select a valid image (JPEG/PNG) or PDF file.");
+      toast.error("Invalid file type.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setFileUrl(event.target.result);
+      setFileType(file.type.startsWith("image") ? "image" : "pdf");
+      setError("");
+      setDescription("");
+      setCameraActive(false);
+    };
+    reader.onerror = () => {
+      setError("Failed to read the file.");
+      toast.error("File reading error.");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Start camera with better initialization
+  const startCamera = async () => {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setError("Camera not supported in this browser.");
+      toast.error("Camera not supported.");
+      return;
+    }
+
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.onloadedmetadata = () => videoRef.current.play();
+      }
+      setCameraActive(true);
+      setFileUrl("");
+      setFileType("");
+      setDescription("");
+      setError("");
+    } catch (err) {
+      setError("Camera access denied or unavailable. Please allow permissions.");
+      toast.error("Camera access denied.");
+      console.error("Camera error:", err);
+    }
+  };
+
+  // Stop camera
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+      stream = null;
+    }
+    setCameraActive(false);
+  };
+
+  // Capture image from camera
+  const captureImage = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL("image/jpeg");
+    setFileUrl(dataUrl);
+    setFileType("image");
+    stopCamera();
+  };
+
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!imageUrl.trim()) return;
+    if (!fileUrl) {
+      setError("Please select a file or capture an image first.");
+      toast.error("No file provided.");
+      return;
+    }
 
     setLoading(true);
     setError("");
     try {
-      const { data } = await axios.post("/api/gemini/image-to-text", {
-        imageUrl
+      let imageUrl = fileUrl;
+
+      // If it's a PDF, extract the first page as an image
+      if (fileType === "pdf") {
+        const loadingTask = pdfjsLib.getDocument(fileUrl);
+        const pdf = await loadingTask.promise;
+        const page = await pdf.getPage(1);
+        const viewport = page.getViewport({ scale: 1.5 });
+        const canvas = document.createElement("canvas");
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        const context = canvas.getContext("2d");
+        await page.render({ canvasContext: context, viewport }).promise;
+        imageUrl = canvas.toDataURL("image/jpeg");
+      }
+
+      const { data } = await axios.post("/api/gemini/ImageToText", {
+        imageUrl, // Base64 data URL
       });
 
       if (data.success) {
         setDescription(data.description);
-        toast.success("Image analyzed successfully!");
+        toast.success("File analyzed successfully!");
       } else {
-        setError(data.message || "Failed to analyze image");
-        toast.error(data.message || "Failed to analyze image");
+        setError(data.message || "Failed to analyze file");
+        toast.error(data.message || "Failed to analyze file");
       }
     } catch (err) {
       console.error("Analysis error:", err);
-      const errorMessage = err.response?.data?.message || "Error analyzing image";
+      const errorMessage = err.response?.data?.message || "Error analyzing file";
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -69,16 +186,51 @@ const ImageToText = () => {
       <form onSubmit={handleSubmit}>
         <Typography variant="h3">Image to Text</Typography>
 
-        <TextField
-          placeholder="Enter image URL..."
-          type="url"
-          required
-          margin="normal"
-          fullWidth
-          value={imageUrl}
-          onChange={(e) => setImageUrl(e.target.value)}
-          disabled={loading}
-        />
+        <Box sx={{ mt: 2 }}>
+          <input
+            type="file"
+            ref={fileInputRef}
+            accept="image/jpeg,image/png,application/pdf"
+            style={{ display: "none" }}
+            onChange={handleFileSelect}
+            disabled={loading}
+          />
+          <Button
+            variant="contained"
+            onClick={() => fileInputRef.current.click()}
+            sx={{ mr: 1 }}
+            disabled={loading || cameraActive}
+          >
+            Choose File
+          </Button>
+          <Button
+            variant="contained"
+            onClick={cameraActive ? stopCamera : startCamera}
+            sx={{ mr: 1 }}
+            disabled={loading}
+          >
+            {cameraActive ? "Stop Camera" : "Open Camera"}
+          </Button>
+        </Box>
+
+        {cameraActive && (
+          <Box sx={{ mt: 2 }}>
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              style={{ width: "100%", maxWidth: "500px", borderRadius: "5px" }}
+            />
+            <Button
+              variant="contained"
+              onClick={captureImage}
+              sx={{ mt: 1 }}
+              disabled={loading}
+            >
+              Capture
+            </Button>
+          </Box>
+        )}
 
         <Button
           type="submit"
@@ -86,17 +238,17 @@ const ImageToText = () => {
           variant="contained"
           size="large"
           sx={{ color: "white", mt: 2 }}
-          disabled={loading || !imageUrl.trim()}
+          disabled={loading || !fileUrl}
         >
-          {loading ? <CircularProgress size={24} color="inherit" /> : "Analyze Image"}
+          {loading ? <CircularProgress size={24} color="inherit" /> : "Analyze File"}
         </Button>
         <Typography mt={2}>
           Not this tool? <Link to="/Homepage">GO BACK</Link>
         </Typography>
       </form>
 
-      <Box sx={{ mt: 4, display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {imageUrl && (
+      <Box sx={{ mt: 4, display: "flex", flexDirection: "column", gap: 2 }}>
+        {fileUrl && (
           <Card
             sx={{
               border: 1,
@@ -104,18 +256,26 @@ const ImageToText = () => {
               borderRadius: 5,
               borderColor: "natural.medium",
               bgcolor: "background.default",
-              overflow: "hidden"
+              overflow: "hidden",
             }}
           >
-            <img 
-              src={imageUrl} 
-              alt="Uploaded content" 
-              style={{ 
-                width: '100%', 
-                height: '300px', 
-                objectFit: 'contain' 
-              }} 
-            />
+            {fileType === "image" ? (
+              <img
+                src={fileUrl}
+                alt="Uploaded or Captured content"
+                style={{
+                  width: "100%",
+                  height: "300px",
+                  objectFit: "contain",
+                }}
+              />
+            ) : (
+              <iframe
+                src={fileUrl}
+                title="PDF Preview"
+                style={{ width: "100%", height: "300px", border: "none" }}
+              />
+            )}
           </Card>
         )}
 
@@ -127,7 +287,7 @@ const ImageToText = () => {
             borderRadius: 5,
             borderColor: "natural.medium",
             bgcolor: "background.default",
-            p: 2
+            p: 2,
           }}
         >
           {description ? (
@@ -142,7 +302,7 @@ const ImageToText = () => {
                 lineHeight: "180px",
               }}
             >
-              {loading ? "Analyzing image..." : "Image description will appear here"}
+              {loading ? "Analyzing file..." : "File description will appear here"}
             </Typography>
           )}
         </Card>
