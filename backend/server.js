@@ -37,7 +37,8 @@ app.use(errorHandler);
 // API routes
 app.use("/api/v1/auth", authRoutes);
 // app.use("/", authRoutes);
-app.use("/gemini", geminiRoutes);
+// app.use("/gemini", geminiRoutes);
+app.use("/api/gemini", geminiRoutes);
 
 // Only start server in development
 if (process.env.NODE_ENV !== 'production') {

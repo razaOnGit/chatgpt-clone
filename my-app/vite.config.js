@@ -1,37 +1,37 @@
 
 //1-mothod  for deploy on vercel  
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    proxy: {
-      '/api': {
-        target: 'http://localhost:8080', // Local backend during development
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-      },
-      '/gemini': {
-        target: 'http://localhost:8080',
-        changeOrigin: true,
-      }
-    }
-  }
-});
-
-// 2 method for deploy on vercel
-// import { defineConfig } from 'vite';
-// import react from '@vitejs/plugin-react';
+// import { defineConfig } from "vite";
+// import react from "@vitejs/plugin-react";
 
 // export default defineConfig({
 //   plugins: [react()],
 //   server: {
 //     proxy: {
-//       '/api': 'http://localhost:8080'
+//       '/api': {
+//         target: 'http://localhost:8080', // Local backend during development
+//         changeOrigin: true,
+//         rewrite: (path) => path.replace(/^\/api/, ''),
+//       },
+//       '/gemini': {
+//         target: 'http://localhost:8080',
+//         changeOrigin: true,
+//       }
 //     }
 //   }
 // });
+
+// 2 method for deploy on vercel
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    proxy: {
+      '/api': 'http://localhost:8080'
+    }
+  }
+});
 
 
 

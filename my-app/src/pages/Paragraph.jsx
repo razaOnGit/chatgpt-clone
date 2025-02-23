@@ -95,7 +95,7 @@ const Paragraph = () => {
           {loading ? <CircularProgress size={24} color="inherit" /> : "Generate"}
         </Button>
         <Typography mt={2}>
-          Not this tool? <Link to="/">GO BACK</Link>
+          Not this tool? <Link to="/Homepage">GO BACK</Link>
         </Typography>
       </form>
 
