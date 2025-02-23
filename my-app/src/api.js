@@ -26,7 +26,7 @@ export const geminiAPI = {
   generateParagraph: (topic) => api.post('/gemini/paragraph', { topic }),
   chat: (message) => api.post('/gemini/chat', { message }),
   convertToJs: (text) => api.post('/gemini/code', { text }), // Changed to match backend route
-  imageToText: (image) => api.post('/gemini/ImageToText', { image }) // Match backend route
+  ImageToText: (image) => api.post('/gemini/ImageToText', { image }) // Match backend route
 };
 
 export const authAPI = {
