@@ -4,7 +4,7 @@ const {
   generateParagraph,
   chatWithAI,
   convertToJavaScript,
-  imageToText
+  ImageToText,
 } = require("../controllers/geminiController");
 
 const router = express.Router();
@@ -13,6 +13,6 @@ router.post("/summarize", summarizeText);
 router.post("/paragraph", generateParagraph);
 router.post("/chat", chatWithAI);
 router.post("/code", convertToJavaScript);
-router.post("/image-to-text", imageToText);
+router.post("/ImageToText", ImageToText);
 
 module.exports = router;

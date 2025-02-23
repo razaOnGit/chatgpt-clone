@@ -143,10 +143,10 @@ const Homepage = () => {
         </Box>
         <Box p={2}>
           <Typography variant="h4" mb={2} fontWeight="bold">
-            AI SCIFI Images
+            Image Solution
           </Typography>
           <Card
-            onClick={() => navigate("/scifi-image")}
+            onClick={() => navigate("/ImageToText")}
             sx={{
               boxShadow: 2,
               borderRadius: 5,
@@ -165,9 +165,9 @@ const Homepage = () => {
             />
             <Stack p={3} pt={0}>
               <Typography fontWeight="bold" variant="h5">
-                Scifi Image
+                Select Image
               </Typography>
-              <Typography variant="h6">Generate Scifi images</Typography>
+              <Typography variant="h6">Generate Solution</Typography>
             </Stack>
           </Card>
         </Box>

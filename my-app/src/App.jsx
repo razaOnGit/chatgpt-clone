@@ -32,7 +32,7 @@ function App() {
         <Route path="/paragraph" element={<Paragraph />} />
         <Route path="/chatbot" element={<ChatBot />} />
         <Route path="/js-converter" element={<JsConverter />} />
-        <Route path="/img-txt" element={<ImageToText />} />
+        <Route path="/ImageToText" element={<ImageToText />} />
       </Routes>
     </ThemeProvider>
   );
