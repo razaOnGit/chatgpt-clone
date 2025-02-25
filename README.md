@@ -1,17 +1,18 @@
 🚀 AI ChatGPT Clone
 An AI-powered chatbot built using MERN Stack + OpenAI API, designed for seamless conversations and intelligent responses.
 
-🌟 Features
-User Side
+## 🌟 Features  
 
-✅ Real-time AI-generated responses
-✅ Chat history for easy access
-✅ Secure authentication
+### ✅ User Side  
+- ✅ Real-time AI-generated responses  
+- ✅ Chat history for easy access  
+- ✅ Secure authentication  
 
-Admin Side
-✅ Dashboard for monitoring user activity 
-✅ AI usage analytics
-✅ Role-based access control
+### 🔧 Admin Side  
+- ✅ Dashboard for monitoring user activity  
+- ✅ AI usage analytics  
+- ✅ Role-based access control  
+
 
 🛠 Tech Stack
 
