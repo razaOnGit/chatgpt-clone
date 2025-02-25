@@ -22,7 +22,7 @@ An AI-powered chatbot built using MERN Stack + OpenAI API, designed for seamless
 - AI Model: OpenAI API / Gemini API
 - Deployment: Vercel (Frontend), Backend (WIP)
 
-🔧 Installation & Setup
+## 🔧 Installation & Setup
 
 1️⃣ Clone the Repository
 git clone https://github.com/your-username/ai-gpt-clone.git
@@ -48,7 +48,7 @@ JWT_SECRET=your-jwt-secret-key
 JWT_EXPIRES_IN=7d
 PORT=8080
 
-🚀 Future Enhancements
+## 🚀 Future Enhancements
 
 - ✅ Advanced AI Model: Exploring fine-tuned LLMs for better responses
 - ✅ Self-Hosted AI: Integrating open-source models like LLaMA, Falcon, or Mistral
