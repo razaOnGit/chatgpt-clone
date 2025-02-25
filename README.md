@@ -16,11 +16,11 @@ An AI-powered chatbot built using MERN Stack + OpenAI API, designed for seamless
 
 🛠 Tech Stack
 
-Frontend: React.js (Vite)
-Backend: Node.js, Express.js, Next.js (API handling)
-Database: MongoDB
-AI Model: OpenAI API / Gemini API
-Deployment: Vercel (Frontend), Backend (WIP)
+- Frontend: React.js (Vite)
+- Backend: Node.js, Express.js, Next.js (API handling)
+- Database: MongoDB
+- AI Model: OpenAI API / Gemini API
+- Deployment: Vercel (Frontend), Backend (WIP)
 
 🔧 Installation & Setup
 
@@ -50,10 +50,10 @@ PORT=8080
 
 🚀 Future Enhancements
 
-✅ Advanced AI Model: Exploring fine-tuned LLMs for better responses
-✅ Self-Hosted AI: Integrating open-source models like LLaMA, Falcon, or Mistral
-✅ Voice & Image Input: Allowing users to send voice and image-based queries
-✅ Personalized AI Responses: Custom AI behavior based on user preferences
+- ✅ Advanced AI Model: Exploring fine-tuned LLMs for better responses
+- ✅ Self-Hosted AI: Integrating open-source models like LLaMA, Falcon, or Mistral
+- ✅ Voice & Image Input: Allowing users to send voice and image-based queries
+- ✅ Personalized AI Responses: Custom AI behavior based on user preferences
 
 📌 Contributing
 Feel free to fork, submit PRs, and report issues. Contributions are welcome!
