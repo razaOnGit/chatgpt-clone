@@ -56,11 +56,16 @@ const Paragraph = () => {
 
   return (
     <Box
-      width={isNotMobile ? "40%" : "80%"}
+      width={isNotMobile ? "80%" : "95%"}
       p={"2rem"}
       m={"2rem auto"}
       borderRadius={5}
-      sx={{ boxShadow: 5 }}
+      sx={{ 
+        boxShadow: 5,
+        minHeight: "85vh",
+        display: "flex",
+        flexDirection: "column"
+      }}
       backgroundColor={theme.palette.background.alt}
     >
       <Collapse in={Boolean(error)}>
@@ -104,11 +109,12 @@ const Paragraph = () => {
           mt: 4,
           border: 1,
           boxShadow: 0,
-          height: "500px",
+          flex: 1,
           borderRadius: 5,
           borderColor: "natural.medium",
           bgcolor: "background.default",
           overflow: "auto",
+          padding: 3,
         }}
       >
         {paragraph ? (

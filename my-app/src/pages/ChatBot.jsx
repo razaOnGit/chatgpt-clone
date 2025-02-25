@@ -55,11 +55,16 @@ const ChatBot = () => {
 
   return (
     <Box
-      width={isNotMobile ? "40%" : "80%"}
+      width={isNotMobile ? "80%" : "95%"} // Increased width
       p={"2rem"}
       m={"2rem auto"}
       borderRadius={5}
-      sx={{ boxShadow: 5 }}
+      sx={{ 
+        boxShadow: 5,
+        minHeight: "85vh", // Make it take most of the viewport height
+        display: "flex",
+        flexDirection: "column"
+      }}
       backgroundColor={theme.palette.background.alt}
     >
       <Collapse in={Boolean(error)}>
@@ -103,12 +108,15 @@ const ChatBot = () => {
           mt: 4,
           border: 1,
           boxShadow: 0,
-          height: "500px",
+          flex: 1, // Take remaining space
           borderRadius: 5,
           borderColor: "natural.medium",
           bgcolor: "background.default",
           overflow: "auto",
-          padding: 2
+          padding: 2,
+          display: "flex",
+          flexDirection: "column",
+          gap: 2
         }}
       >
         {conversation.length > 0 ? (
@@ -119,6 +127,8 @@ const ChatBot = () => {
                 mb: 2,
                 p: 2,
                 borderRadius: 2,
+                maxWidth: "85%", // Limit message width
+                alignSelf: msg.role === "user" ? "flex-end" : "flex-start",
                 backgroundColor: msg.role === "user" ? 
                   theme.palette.primary.light : 
                   theme.palette.background.alt,
@@ -139,8 +149,8 @@ const ChatBot = () => {
             color="natural.main"
             sx={{
               textAlign: "center",
-              verticalAlign: "middle",
-              lineHeight: "450px",
+              mt: "auto",
+              mb: "auto"
             }}
           >
             Start a conversation with Gemini AI

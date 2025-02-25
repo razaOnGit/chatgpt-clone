@@ -32,13 +32,18 @@ const ImageToText = () => {
   const fileInputRef = useRef(null);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  let stream = null;
+  const streamRef = useRef(null);
 
-  // Cleanup camera stream on unmount
+  // Add a mounted ref to track component mounting state
+  const mounted = useRef(false);
+
   useEffect(() => {
+    mounted.current = true;
     return () => {
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
+      mounted.current = false;
+      // Cleanup camera stream
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
       }
     };
   }, []);
@@ -79,28 +84,58 @@ const ImageToText = () => {
     }
 
     try {
-      stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.onloadedmetadata = () => videoRef.current.play();
-      }
+      // First set camera active to ensure video element is rendered
       setCameraActive(true);
+      
+      // Wait a bit for the video element to be available in the DOM
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      if (!mounted.current || !videoRef.current) {
+        throw new Error("Video element not initialized");
+      }
+
+      streamRef.current = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: "user"
+        }
+      });
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = streamRef.current;
+        
+        // Wait for video to be ready
+        await new Promise((resolve) => {
+          videoRef.current.onloadedmetadata = () => {
+            console.log("Video metadata loaded");
+            videoRef.current.play()
+              .then(resolve)
+              .catch(e => {
+                console.error("Play error:", e);
+                throw e;
+              });
+          };
+        });
+      }
+
       setFileUrl("");
       setFileType("");
       setDescription("");
       setError("");
     } catch (err) {
-      setError("Camera access denied or unavailable. Please allow permissions.");
-      toast.error("Camera access denied.");
       console.error("Camera error:", err);
+      setError(`Camera access denied or unavailable: ${err.message}`);
+      toast.error("Camera access denied.");
+      setCameraActive(false);
     }
   };
 
   // Stop camera
   const stopCamera = () => {
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
-      stream = null;
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
     }
     setCameraActive(false);
   };
@@ -218,8 +253,21 @@ const ImageToText = () => {
             <video
               ref={videoRef}
               autoPlay
+              playsInline
               muted
-              style={{ width: "100%", maxWidth: "500px", borderRadius: "5px" }}
+              style={{
+                width: "100%",
+                maxWidth: "500px",
+                borderRadius: "5px",
+                backgroundColor: "#000",
+                minHeight: "300px",
+                display: "block", // Ensure video is block-level element
+                margin: "0 auto" // Center the video
+              }}
+            />
+            <canvas
+              ref={canvasRef}
+              style={{ display: "none" }}
             />
             <Button
               variant="contained"
