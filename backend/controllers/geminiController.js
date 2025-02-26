@@ -116,8 +116,8 @@ exports.chatWithAI = async (req, res) => {
     const model = genAI.getGenerativeModel({ model: "gemini-pro" });
     const chat = model.startChat({
       history: conversationHistory.map(msg => ({
-        role: msg.role,
-        parts: msg.content
+        role: msg.role === "assistant" ? "model" : msg.role, // Map "assistant" to "model"
+        parts: [{ text: msg.content }] // Wrap content in an array
       }))
     });
 
