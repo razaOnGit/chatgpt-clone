@@ -22,11 +22,10 @@ const initializeGemini = () => {
 
 const genAI = initializeGemini();
 
-// ...rest of your existing code...
 // Add a test function to verify API connection
 const testGeminiConnection = async () => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" }); // Updated model name
     const result = await model.generateContent("Test connection");
     console.log("Gemini API connection test successful".green);
   } catch (error) {
@@ -51,7 +50,7 @@ exports.summarizeText = async (req, res) => {
       });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" }); // Updated model name
     const prompt = `Summarize this text in a concise way:\n${text}`;
     
     const result = await model.generateContent(prompt);
@@ -82,7 +81,7 @@ exports.generateParagraph = async (req, res) => {
       });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" }); // Updated model name
     const prompt = `Write a ${length} paragraph about ${topic} in a ${tone} tone.`;
     
     const result = await model.generateContent(prompt);
@@ -113,11 +112,12 @@ exports.chatWithAI = async (req, res) => {
       });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" }); // Updated model name
     const chat = model.startChat({
       history: conversationHistory.map(msg => ({
-        role: msg.role,
-        parts: msg.content
+        role: msg.role === "assistant" ? "model" : msg.role, // Map "assistant" to "model"
+        parts: [{ text: msg.content }] // Wrap content in an array
+
       }))
     });
 
@@ -154,7 +154,7 @@ exports.convertToJavaScript = async (req, res) => {
       });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" }); // Updated model name
     const prompt = `Convert this English description to JavaScript code:
     Description: ${description}
     Please provide clean, well-commented code.`;
@@ -205,7 +205,7 @@ exports.imageToText = async (req, res) => {
     const mimeType = imageUrl.split(';')[0].split(':')[1];
 
     // Initialize Gemini Pro Vision model
-    const model = genAI.getGenerativeModel({ model: "gemini-pro-vision" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro-vision" }); // Updated model name for vision
 
     // Prepare prompt based on file type
     const prompt = isPdfDataUrl 
