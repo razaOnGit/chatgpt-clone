@@ -7,7 +7,7 @@ const initializeGemini = () => {
     
     if (!GEMINI_API_KEY) {
         console.error("GEMINI_API_KEY is missing in environment variables".red);
-        throw new Error("GEMINI_API_KEY is missing in environment variables");
+        process.exit(1);
     }
 
     try {
@@ -16,21 +16,49 @@ const initializeGemini = () => {
         return genAI;
     } catch (error) {
         console.error("Failed to initialize Gemini API:".red, error);
-        throw error;
+        process.exit(1);
     }
 };
 
 const genAI = initializeGemini();
 
-// Add a test function to verify API connection
+// Updated test function with proper error handling
 const testGeminiConnection = async () => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" }); // Updated model name
-    const result = await model.generateContent("Test connection");
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" }); // Updated model name
+    
+    // Test with a simple prompt and proper response handling
+    const result = await model.generateContent("Hello");
+    
+    if (!result || !result.response) {
+      throw new Error("No response received from Gemini API");
+    }
+
+    const response = await result.response;
     console.log("Gemini API connection test successful".green);
+    console.log("Response received:", response.text());
+    
   } catch (error) {
-    console.error("Gemini API connection test failed:".red, error);
-    throw error;
+    console.error("\nGemini API connection test failed:".red);
+    console.error("Error:", error.message);
+    
+    if (error.message.includes('API key')) {
+      console.log("\nAPI Key Issue:".yellow);
+      console.log("1. Verify the API key in your .env file".yellow);
+      console.log("2. Make sure the key has not expired".yellow);
+      console.log("3. Check if the key has proper permissions".yellow);
+    } else if (error.message.includes('quota')) {
+      console.log("\nQuota Issue:".yellow);
+      console.log("1. Check your API quota limits".yellow);
+      console.log("2. Verify billing is enabled".yellow);
+    } else {
+      console.log("\nTroubleshooting Steps:".yellow);
+      console.log("1. Check if your IP is allowed".yellow);
+      console.log("2. Verify you're in a supported region".yellow);
+      console.log("3. Ensure the API is properly enabled in Google Cloud Console".yellow);
+    }
+    
+    process.exit(1);
   }
 };
 
@@ -50,7 +78,7 @@ exports.summarizeText = async (req, res) => {
       });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" }); // Updated model name
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" }); // Updated model name
     const prompt = `Summarize this text in a concise way:\n${text}`;
     
     const result = await model.generateContent(prompt);
@@ -81,7 +109,7 @@ exports.generateParagraph = async (req, res) => {
       });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" }); // Updated model name
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" }); // Updated model name
     const prompt = `Write a ${length} paragraph about ${topic} in a ${tone} tone.`;
     
     const result = await model.generateContent(prompt);
@@ -112,7 +140,7 @@ exports.chatWithAI = async (req, res) => {
       });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" }); // Updated model name
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" }); // Updated model name
     const chat = model.startChat({
       history: conversationHistory.map(msg => ({
         role: msg.role === "assistant" ? "model" : msg.role, // Map "assistant" to "model"
@@ -154,7 +182,7 @@ exports.convertToJavaScript = async (req, res) => {
       });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" }); // Updated model name
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" }); // Updated model name
     const prompt = `Convert this English description to JavaScript code:
     Description: ${description}
     Please provide clean, well-commented code.`;
@@ -205,7 +233,7 @@ exports.imageToText = async (req, res) => {
     const mimeType = imageUrl.split(';')[0].split(':')[1];
 
     // Initialize Gemini Pro Vision model
-    const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro-vision" }); // Updated model name for vision
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro-vision" }); // Updated model name for vision
 
     // Prepare prompt based on file type
     const prompt = isPdfDataUrl 
