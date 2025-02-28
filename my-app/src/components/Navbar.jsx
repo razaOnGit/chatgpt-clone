@@ -108,7 +108,7 @@ const Navbar = () => {
               transformOrigin: 'bottom left',
             }
           }}
-          onClick={() => navigate("/homepage")}
+          onClick={() => navigate("/")}
         >
           AI GPT Clone
         </Typography>
