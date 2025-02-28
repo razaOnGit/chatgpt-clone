@@ -6,8 +6,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: process.env.NODE_ENV === 'production' 
-          ? 'https://chatgpt-clone-br89.onrender.com'  // Replace with your Render URL
+        target: process.env.NODE_ENV === 'production'
+          ? 'https://chatgpt-clone-br89.onrender.com' // Your Render backend URL
           : 'http://localhost:8080',
         changeOrigin: true,
         secure: true,
@@ -19,14 +19,11 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true,
     rollupOptions: {
-      external: [
-        '@mui/icons-material',
-        '@mui/material'
-      ]
+      // Remove external, or only externalize true runtime dependencies (e.g., CDN libs)
+      external: [] // Or leave it out entirely
     }
   },
   define: {
     'process.env': process.env
   }
 });
-
