@@ -13,8 +13,9 @@ import {
   Card,
   CircularProgress,
 } from "@mui/material";
+import CameraSwitch from '@mui/icons-material/CameraSwitch';
+import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import * as pdfjsLib from "pdfjs-dist/build/pdf"; // For PDF handling
-import CameraSwitch from '@mui/icons-material/CameraSwitch'; // Import the CameraSwitch icon
 
 // Set worker source for pdf.js
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;

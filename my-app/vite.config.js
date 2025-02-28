@@ -17,7 +17,13 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true
+    sourcemap: true,
+    rollupOptions: {
+      external: [
+        '@mui/icons-material',
+        '@mui/material'
+      ]
+    }
   },
   define: {
     'process.env': process.env
