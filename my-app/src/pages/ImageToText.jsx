@@ -14,6 +14,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import * as pdfjsLib from "pdfjs-dist/build/pdf"; // For PDF handling
+import CameraSwitch from '@mui/icons-material/CameraSwitch'; // Import the CameraSwitch icon
 
 // Set worker source for pdf.js
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
@@ -28,6 +29,7 @@ const ImageToText = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
+  const [facingMode, setFacingMode] = useState("user");
 
   const fileInputRef = useRef(null);
   const videoRef = useRef(null);
@@ -84,28 +86,24 @@ const ImageToText = () => {
     }
 
     try {
-      // First set camera active to ensure video element is rendered
       setCameraActive(true);
-      
-      // Wait a bit for the video element to be available in the DOM
       await new Promise(resolve => setTimeout(resolve, 100));
 
       if (!mounted.current || !videoRef.current) {
         throw new Error("Video element not initialized");
       }
 
+      // Use facingMode state here
       streamRef.current = await navigator.mediaDevices.getUserMedia({
         video: {
           width: { ideal: 1280 },
           height: { ideal: 720 },
-          facingMode: "user"
+          facingMode: facingMode
         }
       });
 
       if (videoRef.current) {
         videoRef.current.srcObject = streamRef.current;
-        
-        // Wait for video to be ready
         await new Promise((resolve) => {
           videoRef.current.onloadedmetadata = () => {
             console.log("Video metadata loaded");
@@ -153,6 +151,19 @@ const ImageToText = () => {
     setFileUrl(dataUrl);
     setFileType("image");
     stopCamera();
+  };
+
+  const switchCamera = async () => {
+    // Stop current stream
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+    }
+    
+    // Toggle facing mode
+    setFacingMode(current => current === "user" ? "environment" : "user");
+    
+    // Restart camera with new facing mode
+    await startCamera();
   };
 
   // Handle form submission
@@ -269,14 +280,28 @@ const ImageToText = () => {
               ref={canvasRef}
               style={{ display: "none" }}
             />
-            <Button
-              variant="contained"
-              onClick={captureImage}
-              sx={{ mt: 1 }}
-              disabled={loading}
-            >
-              Capture
-            </Button>
+            <Box sx={{ 
+              mt: 1, 
+              display: 'flex', 
+              gap: 1,
+              justifyContent: 'center' 
+            }}>
+              <Button
+                variant="contained"
+                onClick={captureImage}
+                disabled={loading}
+              >
+                Capture
+              </Button>
+              <Button
+                variant="contained"
+                onClick={switchCamera}
+                disabled={loading}
+                startIcon={<CameraSwitch />}
+              >
+                Switch Camera
+              </Button>
+            </Box>
           </Box>
         )}
 
