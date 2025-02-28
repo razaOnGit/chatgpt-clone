@@ -242,7 +242,8 @@ const Login = () => {
                   ease: "linear" 
                 }}
               >
-                💫
+                💫 💫
+                <CircularProgress size={24} />
               </motion.div>
             ) : (
               <span className="MuiButton-label">Sign In</span>
