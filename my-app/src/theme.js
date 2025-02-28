@@ -69,5 +69,17 @@ export const colorTokens = {
           fontSize: 14,
         },
       },
+      components: {
+        MuiAppBar: {
+          styleOverrides: {
+            root: {
+              backdropFilter: 'blur(10px)',
+              backgroundColor: mode === 'dark' 
+                ? 'rgba(39, 11, 96, 0.5)' 
+                : 'rgba(255, 255, 255, 0.8)',
+            },
+          },
+        },
+      },
     };
   };
