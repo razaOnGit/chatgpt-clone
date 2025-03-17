@@ -76,6 +76,7 @@ const Navbar = () => {
         alignItems: "center"
       }}
     >
+      {/* Logo */}
       <motion.div
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
@@ -114,19 +115,18 @@ const Navbar = () => {
         </Typography>
       </motion.div>
       
+      {/* Navigation Buttons */}
       <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-        {loggedIn && (
-          <Button
-            component={motion.button}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate("/homepage")}
-            startIcon={<HomeIcon />}
-            sx={buttonStyle}
-          >
-            Home
-          </Button>
-        )}
+        <Button
+          component={motion.button}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => navigate("/homepage")}
+          startIcon={<HomeIcon />}
+          sx={buttonStyle}
+        >
+          Home
+        </Button>
         
         {loggedIn ? (
           <Button
