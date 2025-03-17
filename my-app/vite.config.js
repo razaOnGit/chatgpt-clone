@@ -20,7 +20,7 @@ export default defineConfig({
     sourcemap: true,
     rollupOptions: {
       // Remove external, or only externalize true runtime dependencies (e.g., CDN libs)
-      external: ['@mui/icons-material'] // Or leave it out entirely
+      external: ['@mui/icons-material/CameraSwitchOutlined'] // Or leave it out entirely
     }
   },
   define: {
