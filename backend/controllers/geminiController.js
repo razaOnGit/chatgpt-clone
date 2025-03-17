@@ -204,6 +204,39 @@ exports.convertToJavaScript = async (req, res) => {
   }
 };
 
+// Python Code Generation
+exports.convertToPython = async (req, res) => {
+  try {
+    const { description } = req.body;
+    if (!description) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide code description"
+      });
+    }
+
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const prompt = `Convert this English description to Python code:
+    Description: ${description}
+    Please provide clean, well-commented Python code.`;
+    
+    const result = await model.generateContent(prompt);
+    const code = result.response.text();
+
+    res.status(200).json({
+      success: true,
+      code
+    });
+  } catch (error) {
+    console.error("Code Conversion Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error converting to Python code",
+      error: error.message
+    });
+  }
+};
+
 // Image to Text (Updated)
 exports.imageToText = async (req, res) => {
   try {

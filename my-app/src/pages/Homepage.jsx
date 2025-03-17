@@ -9,6 +9,7 @@ import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
+import CodeIcon from '@mui/icons-material/Code';
 
 const Homepage = () => {
   const navigate = useNavigate();
@@ -177,6 +178,38 @@ const Homepage = () => {
                 Select Image
               </Typography>
               <Typography variant="h6">Generate Solution</Typography>
+            </Stack>
+          </Card>
+        </Box>
+        <Box p={2}>
+          <Typography variant="h4" mb={2} fontWeight="bold">
+            Python Code Generator
+          </Typography>
+          <Card
+            onClick={() => navigate("/py-converter")}
+            sx={{
+              boxShadow: 2,
+              borderRadius: 5,
+              height: 190,
+              width: 200,
+              "&:hover": {
+                border: 2,
+                boxShadow: 0,
+                borderColor: "success.dark",
+                cursor: "pointer",
+              },
+            }}
+          >
+            <CodeIcon
+              sx={{ fontSize: 80, color: "success.main", mt: 2, ml: 2 }}
+            />
+            <Stack p={3} pt={0}>
+              <Typography fontWeight="bold" variant="h5">
+                Python Code Generator
+              </Typography>
+              <Typography variant="h6">
+                Convert English instructions into Python code
+              </Typography>
             </Stack>
           </Card>
         </Box>

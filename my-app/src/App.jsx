@@ -14,6 +14,7 @@ import ChatBot from "./pages/ChatBot";
 import JsConverter from "./pages/JsConverter";
 import Paragraph from "./pages/Paragraph";
 import ImageToText from "./pages/ImageToText";
+import PyConverter from "./pages/PyConverter";
 
 function App() {
   const theme = useMemo(() => createTheme(themeSettings()), []);
@@ -33,6 +34,7 @@ function App() {
         <Route path="/chatbot" element={<ChatBot />} />
         <Route path="/js-converter" element={<JsConverter />} />
         <Route path="/ImageToText" element={<ImageToText />} />
+        <Route path="/py-converter" element={<PyConverter />} />
       </Routes>
     </ThemeProvider>
   );
