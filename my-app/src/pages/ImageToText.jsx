@@ -13,7 +13,7 @@ import {
   Card,
   CircularProgress,
 } from "@mui/material";
-import CameraSwitch from '@mui/icons-material/CameraSwitch';
+import CameraSwitch from '@mui/icons-material/CameraSwitchOutlined';
 import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import * as pdfjsLib from "pdfjs-dist/build/pdf"; // For PDF handling
 
