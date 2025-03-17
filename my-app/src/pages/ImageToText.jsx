@@ -12,14 +12,14 @@ import {
   Collapse,
   Card,
   CircularProgress,
+  TextField,
 } from "@mui/material";
-import Cameraswitch from '@mui/icons-material/Cameraswitch';  // Fixed import
-import PhotoCamera from '@mui/icons-material/PhotoCamera';     // Consistent naming
+import Cameraswitch from '@mui/icons-material/Cameraswitch';
+import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import * as pdfjsLib from "pdfjs-dist/build/pdf"; // For PDF handling
 
 // Set worker source for pdf.js
 pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-
 
 const ImageToText = () => {
   const theme = useTheme();
@@ -32,6 +32,7 @@ const ImageToText = () => {
   const [loading, setLoading] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
   const [facingMode, setFacingMode] = useState("user");
+  const [inputText, setInputText] = useState(""); // User input text
 
   const fileInputRef = useRef(null);
   const videoRef = useRef(null);
@@ -169,8 +170,7 @@ const ImageToText = () => {
   };
 
   // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     if (!fileUrl) {
       setError("Please select a file or capture an image first.");
       toast.error("No file provided.");
@@ -198,6 +198,7 @@ const ImageToText = () => {
 
       const { data } = await axios.post("/api/gemini/ImageToText", {
         imageUrl, // Base64 data URL
+        userInput: inputText, // Include user input in the request
       });
 
       if (data.success) {
@@ -231,158 +232,162 @@ const ImageToText = () => {
           {error}
         </Alert>
       </Collapse>
-      <form onSubmit={handleSubmit}>
-        <Typography variant="h3">Image to Text</Typography>
 
-        <Box sx={{ mt: 2 }}>
-          <input
-            type="file"
-            ref={fileInputRef}
-            accept="image/jpeg,image/png,application/pdf"
-            style={{ display: "none" }}
-            onChange={handleFileSelect}
-            disabled={loading}
-          />
-          <Button
-            variant="contained"
-            onClick={() => fileInputRef.current.click()}
-            sx={{ mr: 1 }}
-            disabled={loading || cameraActive}
-          >
-            Choose File
-          </Button>
-          <Button
-            variant="contained"
-            onClick={cameraActive ? stopCamera : startCamera}
-            sx={{ mr: 1 }}
-            disabled={loading}
-          >
-            {cameraActive ? "Stop Camera" : "Open Camera"}
-          </Button>
-        </Box>
+      <Typography variant="h3" sx={{ mb: 3 }}>
+        Image to Text
+      </Typography>
 
-        {cameraActive && (
-          <Box sx={{ mt: 2 }}>
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              style={{
-                width: "100%",
-                maxWidth: "500px",
-                borderRadius: "5px",
-                backgroundColor: "#000",
-                minHeight: "300px",
-                display: "block", // Ensure video is block-level element
-                margin: "0 auto" // Center the video
-              }}
-            />
-            <canvas
-              ref={canvasRef}
-              style={{ display: "none" }}
-            />
-            <Box sx={{ 
-              mt: 1, 
-              display: 'flex', 
-              gap: 1,
-              justifyContent: 'center' 
-            }}>
-              <Button
-                variant="contained"
-                onClick={captureImage}
-                disabled={loading}
-                startIcon={<PhotoCamera />}
-              >
-                Capture
-              </Button>
-              <Button
-                variant="contained"
-                onClick={switchCamera}
-                disabled={loading}
-                startIcon={<Cameraswitch />}
-              >
-                Switch Camera
-              </Button>
-            </Box>
-          </Box>
-        )}
-
+      {/* File Upload and Camera Section */}
+      <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+        <input
+          type="file"
+          ref={fileInputRef}
+          accept="image/jpeg,image/png,application/pdf"
+          style={{ display: "none" }}
+          onChange={handleFileSelect}
+          disabled={loading}
+        />
         <Button
-          type="submit"
-          fullWidth
           variant="contained"
-          size="large"
-          sx={{ color: "white", mt: 2 }}
-          disabled={loading || !fileUrl}
+          onClick={() => fileInputRef.current.click()}
+          disabled={loading || cameraActive}
         >
-          {loading ? <CircularProgress size={24} color="inherit" /> : "Analyze File"}
+          Choose File
         </Button>
-        <Typography mt={2}>
-          Not this tool? <Link to="/Homepage">GO BACK</Link>
-        </Typography>
-      </form>
+        <Button
+          variant="contained"
+          onClick={cameraActive ? stopCamera : startCamera}
+          disabled={loading}
+        >
+          {cameraActive ? "Stop Camera" : "Open Camera"}
+        </Button>
+      </Box>
 
-      <Box sx={{ mt: 4, display: "flex", flexDirection: "column", gap: 2 }}>
-        {fileUrl && (
-          <Card
-            sx={{
-              border: 1,
-              boxShadow: 0,
-              borderRadius: 5,
-              borderColor: "natural.medium",
-              bgcolor: "background.default",
-              overflow: "hidden",
+      {/* Camera Preview */}
+      {cameraActive && (
+        <Box sx={{ mb: 3 }}>
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted
+            style={{
+              width: "100%",
+              maxWidth: "500px",
+              borderRadius: "5px",
+              backgroundColor: "#000",
+              minHeight: "300px",
+              display: "block",
+              margin: "0 auto",
             }}
-          >
-            {fileType === "image" ? (
-              <img
-                src={fileUrl}
-                alt="Uploaded or Captured content"
-                style={{
-                  width: "100%",
-                  height: "300px",
-                  objectFit: "contain",
-                }}
-              />
-            ) : (
-              <iframe
-                src={fileUrl}
-                title="PDF Preview"
-                style={{ width: "100%", height: "300px", border: "none" }}
-              />
-            )}
-          </Card>
-        )}
+          />
+          <canvas
+            ref={canvasRef}
+            style={{ display: "none" }}
+          />
+          <Box sx={{ mt: 1, display: "flex", gap: 1, justifyContent: "center" }}>
+            <Button
+              variant="contained"
+              onClick={captureImage}
+              disabled={loading}
+              startIcon={<PhotoCamera />}
+            >
+              Capture
+            </Button>
+            <Button
+              variant="contained"
+              onClick={switchCamera}
+              disabled={loading}
+              startIcon={<Cameraswitch />}
+            >
+              Switch Camera
+            </Button>
+          </Box>
+        </Box>
+      )}
 
+      {/* Image Preview */}
+      {fileUrl && (
         <Card
           sx={{
             border: 1,
             boxShadow: 0,
-            minHeight: "200px",
+            borderRadius: 5,
+            borderColor: "natural.medium",
+            bgcolor: "background.default",
+            overflow: "hidden",
+            mb: 3,
+          }}
+        >
+          {fileType === "image" ? (
+            <img
+              src={fileUrl}
+              alt="Uploaded or Captured content"
+              style={{
+                width: "100%",
+                height: "300px",
+                objectFit: "contain",
+              }}
+            />
+          ) : (
+            <iframe
+              src={fileUrl}
+              title="PDF Preview"
+              style={{ width: "100%", height: "300px", border: "none" }}
+            />
+          )}
+        </Card>
+      )}
+
+      {/* Text Field for User Input */}
+      {fileUrl && (
+        <Box sx={{ mb: 3 }}>
+          <TextField
+            fullWidth
+            variant="outlined"
+            placeholder="Ask a question or provide input..."
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            multiline
+            rows={3}
+          />
+        </Box>
+      )}
+
+      {/* Analyze/Send Button */}
+      {fileUrl && (
+        <Button
+          fullWidth
+          variant="contained"
+          size="large"
+          sx={{ color: "white", mb: 3 }}
+          onClick={handleSubmit}
+          disabled={loading}
+        >
+          {loading ? <CircularProgress size={24} color="inherit" /> : "Analyze"}
+        </Button>
+      )}
+
+      {/* Description Section */}
+      {description && (
+        <Card
+          sx={{
+            border: 1,
+            boxShadow: 0,
             borderRadius: 5,
             borderColor: "natural.medium",
             bgcolor: "background.default",
             p: 2,
           }}
         >
-          {description ? (
-            <Typography>{description}</Typography>
-          ) : (
-            <Typography
-              variant="h5"
-              color="natural.main"
-              sx={{
-                textAlign: "center",
-                verticalAlign: "middle",
-                lineHeight: "180px",
-              }}
-            >
-              {loading ? "Analyzing file..." : "File description will appear here"}
-            </Typography>
-          )}
+          <Typography>{description}</Typography>
         </Card>
-      </Box>
+      )}
+
+      {/* Go Back Link */}
+      <Typography mt={2}>
+        Not this tool? <Link to="/Homepage">GO BACK</Link>
+      </Typography>
     </Box>
   );
 };
