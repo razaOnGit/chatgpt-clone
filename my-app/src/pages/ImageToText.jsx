@@ -13,8 +13,8 @@ import {
   Card,
   CircularProgress,
 } from "@mui/material";
-import CameraSwitchOutlinedIcon from '@mui/icons-material/CameraSwitchOutlined';
-import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import Cameraswitch from '@mui/icons-material/Cameraswitch';  // Fixed import
+import PhotoCamera from '@mui/icons-material/PhotoCamera';     // Consistent naming
 import * as pdfjsLib from "pdfjs-dist/build/pdf"; // For PDF handling
 
 // Set worker source for pdf.js
@@ -292,7 +292,7 @@ const ImageToText = () => {
                 variant="contained"
                 onClick={captureImage}
                 disabled={loading}
-                startIcon={<PhotoCameraIcon />}
+                startIcon={<PhotoCamera />}
               >
                 Capture
               </Button>
@@ -300,7 +300,7 @@ const ImageToText = () => {
                 variant="contained"
                 onClick={switchCamera}
                 disabled={loading}
-                startIcon={<CameraSwitchOutlinedIcon />}
+                startIcon={<Cameraswitch />}
               >
                 Switch Camera
               </Button>
