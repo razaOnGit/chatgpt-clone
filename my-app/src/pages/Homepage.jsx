@@ -10,6 +10,8 @@ import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import CodeIcon from '@mui/icons-material/Code';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faGlobe } from '@fortawesome/free-solid-svg-icons';
 
 const Homepage = () => {
   const navigate = useNavigate();
@@ -249,13 +251,33 @@ const Homepage = () => {
             <Typography>+91 1234567890</Typography>
           </Box>
           <Box display="flex" alignItems="center" gap={1}>
-            <LinkedInIcon color="primary" />
             <Link 
               href="https://portfolio-mdraza.vercel.app/" 
-              target="_blank" 
-              underline="hover"
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                background: 'linear-gradient(45deg, #4ecdc4, #ff6b6b)',
+                padding: '0.5rem 1rem',
+                borderRadius: '25px',
+                color: '#fff',
+                textDecoration: 'none',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  transform: 'scale(1.05)',
+                  boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                }
+              }}
             >
-            Profile
+              👉 Profile ▶️
+              <FontAwesomeIcon 
+                icon={faGlobe} 
+                style={{ 
+                  marginLeft: '0.5rem',
+                  animation: 'rotate 3s linear infinite'
+                }} 
+              />
             </Link>
           </Box>
         </Stack>
@@ -263,6 +285,20 @@ const Homepage = () => {
       
       {/* Add margin bottom to prevent content from being hidden behind fixed footer */}
       <Box sx={{ mb: 20 }} />
+
+      {/* Add the rotation animation */}
+      <style>
+        {`
+          @keyframes rotate {
+            from {
+              transform: rotate(0deg);
+            }
+            to {
+              transform: rotate(360deg);
+            }
+          }
+        `}
+      </style>
     </Box>
   );
 };
