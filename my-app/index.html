@@ -39,43 +39,110 @@
         box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         transition: all 0.3s ease;
         z-index: 9999;
+        /* Mobile optimizations */
+        -webkit-tap-highlight-color: transparent;
+        touch-action: manipulation;
       }
 
       #installButton:hover {
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(0,0,0,0.25);
       }
+
+      /* Mobile styles */
+      @media (max-width: 768px) {
+        #installButton {
+          bottom: 30px;
+          right: 50%;
+          transform: translateX(50%);
+          padding: 16px 32px;
+          font-size: 16px;
+          border-radius: 30px;
+          box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        #installButton.ios-prompt {
+          bottom: 0;
+          right: 0;
+          width: 100%;
+          border-radius: 20px 20px 0 0;
+          padding: 20px;
+          background: rgba(33, 33, 33, 0.95);
+          backdrop-filter: blur(10px);
+        }
+      }
+
+      /* iOS install prompt */
+      #iosPrompt {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 20px;
+        background: rgba(33, 33, 33, 0.95);
+        backdrop-filter: blur(10px);
+        color: white;
+        text-align: center;
+        z-index: 9999;
+      }
     </style>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-    <button id="installButton">Install AI_Clone</button>
+    <button id="installButton">
+      <span class="icon">📱</span>
+      Install AI_Clone
+    </button>
+    <div id="iosPrompt">
+      To install AI_Clone, tap <span class="share-icon">📲</span> and then "Add to Home Screen"
+      <button onclick="this.parentElement.style.display='none'" style="margin-left: 10px; padding: 5px 10px; border-radius: 15px; border: 1px solid white;">
+        Got it
+      </button>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
 
     <!-- PWA Install Handler -->
     <script>
       let deferredPrompt;
       const installButton = document.getElementById('installButton');
+      const iosPrompt = document.getElementById('iosPrompt');
+
+      // Detect iOS
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+      // Show iOS-specific install prompt
+      if (isIOS && !window.navigator.standalone) {
+        iosPrompt.style.display = 'block';
+      }
 
       // Listen for the beforeinstallprompt event
       window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
         installButton.style.display = 'flex';
+
+        // Track if user installed via our button
+        gtag('event', 'pwa_install_prompt_shown');
       });
 
       // Handle install button click
       installButton.addEventListener('click', async () => {
         if (!deferredPrompt) return;
         
+        // Show the install prompt
         deferredPrompt.prompt();
+        
+        // Wait for the user to respond to the prompt
         const { outcome } = await deferredPrompt.userChoice;
         
         if (outcome === 'accepted') {
           console.log('App was installed');
+          gtag('event', 'pwa_installed');
         } else {
           console.log('App installation was declined');
+          gtag('event', 'pwa_install_declined');
         }
         
         deferredPrompt = null;
@@ -85,7 +152,23 @@
       // Hide button if app is already installed
       window.addEventListener('appinstalled', () => {
         installButton.style.display = 'none';
+        iosPrompt.style.display = 'none';
         console.log('App successfully installed');
+        gtag('event', 'pwa_installed_success');
+      });
+
+      // Add mobile gesture handlers
+      let touchStartY = 0;
+      iosPrompt.addEventListener('touchstart', (e) => {
+        touchStartY = e.touches[0].clientY;
+      });
+
+      iosPrompt.addEventListener('touchmove', (e) => {
+        const touchY = e.touches[0].clientY;
+        const diff = touchStartY - touchY;
+        if (diff > 50) { // Swipe up to dismiss
+          iosPrompt.style.display = 'none';
+        }
       });
     </script>
   </body>

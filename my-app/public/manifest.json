@@ -38,8 +38,26 @@
   ],
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "scope": "/",
+  "orientation": "any",
   "theme_color": "#4caf50",
-  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "launch_handler": {
+    "client_mode": ["focus-existing", "auto"]
+  },
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "AI Chat",
+      "url": "/chatbot",
+      "description": "Start a chat with AI"
+    },
+    {
+      "name": "Text Generation",
+      "url": "/summary",
+      "description": "Generate text summaries"
+    }
+  ],
   "categories": ["productivity", "utilities"]
 }
