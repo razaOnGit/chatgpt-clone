@@ -21,10 +21,72 @@
     />
 
     <title>AI_Clone - Multiple AI Tools</title>
+
+    <style>
+      #installButton {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 12px 24px;
+        background: linear-gradient(45deg, #4ecdc4, #4caf50);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-family: 'Roboto', sans-serif;
+        font-weight: 500;
+        cursor: pointer;
+        display: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+        z-index: 9999;
+      }
+
+      #installButton:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+      }
+    </style>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+    <button id="installButton">Install AI_Clone</button>
     <script type="module" src="/src/main.jsx"></script>
+
+    <!-- PWA Install Handler -->
+    <script>
+      let deferredPrompt;
+      const installButton = document.getElementById('installButton');
+
+      // Listen for the beforeinstallprompt event
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        installButton.style.display = 'flex';
+      });
+
+      // Handle install button click
+      installButton.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+        
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        
+        if (outcome === 'accepted') {
+          console.log('App was installed');
+        } else {
+          console.log('App installation was declined');
+        }
+        
+        deferredPrompt = null;
+        installButton.style.display = 'none';
+      });
+
+      // Hide button if app is already installed
+      window.addEventListener('appinstalled', () => {
+        installButton.style.display = 'none';
+        console.log('App successfully installed');
+      });
+    </script>
   </body>
 </html>
