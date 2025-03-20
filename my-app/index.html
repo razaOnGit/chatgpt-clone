@@ -86,6 +86,32 @@
         text-align: center;
         z-index: 9999;
       }
+
+      /* Android-specific styles */
+      #installButton.android-prompt {
+        background: linear-gradient(45deg, #3B82F6, #8B5CF6);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 16px;
+        padding: 16px 32px;
+        border-radius: 30px;
+        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+      }
+
+      #installButton.android-prompt .icon {
+        font-size: 20px;
+      }
+
+      @media (max-width: 768px) {
+        #installButton.android-prompt {
+          width: auto;
+          min-width: 200px;
+          max-width: 80%;
+          margin: 0 auto;
+          bottom: 40px;
+        }
+      }
     </style>
   </head>
   <body>
@@ -105,14 +131,28 @@
 
     <!-- PWA Install Handler -->
     <script>
+      // Register Service Worker
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+              console.log('ServiceWorker registration successful');
+            })
+            .catch(err => {
+              console.log('ServiceWorker registration failed: ', err);
+            });
+        });
+      }
+
       let deferredPrompt;
       const installButton = document.getElementById('installButton');
       const iosPrompt = document.getElementById('iosPrompt');
 
-      // Detect iOS
+      // Detect platform
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      const isAndroid = /Android/.test(navigator.userAgent);
 
-      // Show iOS-specific install prompt
+      // Show appropriate prompt
       if (isIOS && !window.navigator.standalone) {
         iosPrompt.style.display = 'block';
       }
@@ -121,32 +161,37 @@
       window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        installButton.style.display = 'flex';
-
-        // Track if user installed via our button
-        gtag('event', 'pwa_install_prompt_shown');
+        
+        // Show install button for Android
+        if (isAndroid) {
+          installButton.style.display = 'flex';
+          // Add Android-specific class
+          installButton.classList.add('android-prompt');
+        }
       });
 
       // Handle install button click
       installButton.addEventListener('click', async () => {
         if (!deferredPrompt) return;
         
-        // Show the install prompt
-        deferredPrompt.prompt();
-        
-        // Wait for the user to respond to the prompt
-        const { outcome } = await deferredPrompt.userChoice;
-        
-        if (outcome === 'accepted') {
-          console.log('App was installed');
-          gtag('event', 'pwa_installed');
-        } else {
-          console.log('App installation was declined');
-          gtag('event', 'pwa_install_declined');
+        try {
+          // Show the install prompt
+          await deferredPrompt.prompt();
+          
+          // Wait for the user to respond to the prompt
+          const { outcome } = await deferredPrompt.userChoice;
+          
+          if (outcome === 'accepted') {
+            console.log('App was installed');
+          } else {
+            console.log('App installation was declined');
+          }
+        } catch (err) {
+          console.error('Install prompt error:', err);
+        } finally {
+          deferredPrompt = null;
+          installButton.style.display = 'none';
         }
-        
-        deferredPrompt = null;
-        installButton.style.display = 'none';
       });
 
       // Hide button if app is already installed
@@ -154,21 +199,6 @@
         installButton.style.display = 'none';
         iosPrompt.style.display = 'none';
         console.log('App successfully installed');
-        gtag('event', 'pwa_installed_success');
-      });
-
-      // Add mobile gesture handlers
-      let touchStartY = 0;
-      iosPrompt.addEventListener('touchstart', (e) => {
-        touchStartY = e.touches[0].clientY;
-      });
-
-      iosPrompt.addEventListener('touchmove', (e) => {
-        const touchY = e.touches[0].clientY;
-        const diff = touchStartY - touchY;
-        if (diff > 50) { // Swipe up to dismiss
-          iosPrompt.style.display = 'none';
-        }
       });
     </script>
   </body>
