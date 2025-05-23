@@ -23,94 +23,73 @@
     <title>AI_Clone - Multiple AI Tools</title>
 
     <style>
+      /* Install button styles - simplified and smaller */
       #installButton {
         position: fixed;
-        bottom: 20px;
+        bottom: 80px;
         right: 20px;
-        padding: 12px 24px;
+        padding: 8px 16px;
         background: linear-gradient(45deg, #4ecdc4, #4caf50);
         color: white;
         border: none;
-        border-radius: 25px;
+        border-radius: 20px;
         font-family: 'Roboto', sans-serif;
-        font-weight: 500;
+        font-weight: 400;
+        font-size: 14px;
         cursor: pointer;
         display: none;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         transition: all 0.3s ease;
         z-index: 9999;
-        /* Mobile optimizations */
+        width: auto;
+        min-width: 140px;
         -webkit-tap-highlight-color: transparent;
         touch-action: manipulation;
       }
 
       #installButton:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
       }
 
-      /* Mobile styles */
+      /* Mobile styles - simplified */
       @media (max-width: 768px) {
         #installButton {
-          bottom: 30px;
-          right: 50%;
-          transform: translateX(50%);
-          padding: 16px 32px;
-          font-size: 16px;
-          border-radius: 30px;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        }
-
-        #installButton.ios-prompt {
-          bottom: 0;
-          right: 0;
-          width: 100%;
-          border-radius: 20px 20px 0 0;
-          padding: 20px;
-          background: rgba(33, 33, 33, 0.95);
-          backdrop-filter: blur(10px);
+          bottom: 70px;
+          right: 16px;
+          padding: 8px 16px;
+          font-size: 13px;
+          min-width: 120px;
         }
       }
 
-      /* iOS install prompt */
+      /* Android-specific styles - simplified */
+      #installButton.android-prompt {
+        background: linear-gradient(45deg, #3B82F6, #8B5CF6);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 2px 10px rgba(59, 130, 246, 0.25);
+      }
+
+      #installButton.android-prompt .icon {
+        font-size: 16px;
+      }
+
+      /* iOS prompt - kept minimal */
       #iosPrompt {
         display: none;
         position: fixed;
         bottom: 0;
         left: 0;
         right: 0;
-        padding: 20px;
+        padding: 16px;
         background: rgba(33, 33, 33, 0.95);
-        backdrop-filter: blur(10px);
+        backdrop-filter: blur(8px);
         color: white;
         text-align: center;
         z-index: 9999;
-      }
-
-      /* Android-specific styles */
-      #installButton.android-prompt {
-        background: linear-gradient(45deg, #3B82F6, #8B5CF6);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 16px;
-        padding: 16px 32px;
-        border-radius: 30px;
-        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
-      }
-
-      #installButton.android-prompt .icon {
-        font-size: 20px;
-      }
-
-      @media (max-width: 768px) {
-        #installButton.android-prompt {
-          width: auto;
-          min-width: 200px;
-          max-width: 80%;
-          margin: 0 auto;
-          bottom: 40px;
-        }
+        font-size: 14px;
       }
     </style>
   </head>
@@ -131,75 +110,104 @@
 
     <!-- PWA Install Handler -->
     <script>
-      // Register Service Worker
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-              console.log('ServiceWorker registration successful');
-            })
-            .catch(err => {
-              console.log('ServiceWorker registration failed: ', err);
-            });
-        });
-      }
+      // Enhanced platform detection with force show option
+      const detectPlatform = () => {
+        const ua = navigator.userAgent.toLowerCase();
+        return {
+          isAndroid: /android/.test(ua),
+          isIOS: /iphone|ipad|ipod/.test(ua) && !window.MSStream,
+          isChrome: /chrome/.test(ua),
+          isSafari: /safari/.test(ua),
+          isStandalone: false, // Always return false to force show button
+        };
+      };
 
+      // Initialize variables
       let deferredPrompt;
       const installButton = document.getElementById('installButton');
       const iosPrompt = document.getElementById('iosPrompt');
+      const platform = detectPlatform();
 
-      // Detect platform
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-      const isAndroid = /Android/.test(navigator.userAgent);
+      // Always show install prompt
+      const showInstallPrompt = () => {
+        if (platform.isIOS) {
+          iosPrompt.style.display = 'block';
+        } else {
+          installButton.style.display = 'flex';
+          installButton.classList.add('android-prompt');
+          
+          // Force button visibility
+          Object.assign(installButton.style, {
+            position: 'fixed',
+            bottom: '80px',
+            right: '20px',
+            display: 'flex',
+            opacity: '1',
+            visibility: 'visible'
+          });
+        }
+      };
 
-      // Show appropriate prompt
-      if (isIOS && !window.navigator.standalone) {
-        iosPrompt.style.display = 'block';
+      // Register Service Worker
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', async () => {
+          try {
+            await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+            console.log('ServiceWorker registered');
+            // Show prompt after service worker registration
+            showInstallPrompt();
+          } catch (error) {
+            console.error('ServiceWorker failed:', error);
+          }
+        });
       }
 
-      // Listen for the beforeinstallprompt event
+      // Handle beforeinstallprompt event
       window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        
-        // Show install button for Android
-        if (isAndroid) {
-          installButton.style.display = 'flex';
-          // Add Android-specific class
-          installButton.classList.add('android-prompt');
-        }
+        showInstallPrompt(); // Force show prompt
       });
 
       // Handle install button click
       installButton.addEventListener('click', async () => {
-        if (!deferredPrompt) return;
-        
-        try {
-          // Show the install prompt
-          await deferredPrompt.prompt();
-          
-          // Wait for the user to respond to the prompt
-          const { outcome } = await deferredPrompt.userChoice;
-          
-          if (outcome === 'accepted') {
-            console.log('App was installed');
+        if (!deferredPrompt) {
+          // Fallback installation instructions
+          if (platform.isAndroid) {
+            alert('To install: tap browser menu (⋮) and select "Add to Home screen"');
           } else {
-            console.log('App installation was declined');
+            alert('To install: use browser menu to add this app to your home screen');
           }
-        } catch (err) {
-          console.error('Install prompt error:', err);
-        } finally {
+          return;
+        }
+
+        try {
+          await deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          console.log(`Installation ${outcome}`);
+          // Don't hide button after installation
           deferredPrompt = null;
-          installButton.style.display = 'none';
+          // Show fallback prompt after installation
+          showInstallPrompt();
+        } catch (err) {
+          console.error('Install failed:', err);
+          showInstallPrompt(); // Keep button visible on error
         }
       });
 
-      // Hide button if app is already installed
-      window.addEventListener('appinstalled', () => {
-        installButton.style.display = 'none';
-        iosPrompt.style.display = 'none';
-        console.log('App successfully installed');
+      // Keep button visible even after installation
+      window.addEventListener('appinstalled', (event) => {
+        console.log('App installed');
+        showInstallPrompt(); // Force show prompt again
       });
+
+      // Override display mode changes
+      window.matchMedia('(display-mode: standalone)').addEventListener('change', (evt) => {
+        showInstallPrompt(); // Always show prompt
+      });
+
+      // Show prompt on initial load
+      showInstallPrompt();
     </script>
   </body>
 </html>
