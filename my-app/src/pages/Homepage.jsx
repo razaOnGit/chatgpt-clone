@@ -218,11 +218,11 @@ const Homepage = () => {
 
       {/* Footer */}
       <Box component="footer" sx={{ 
-        position: 'fixed', 
+        position: 'relative', 
         bottom: 0,
         width: '100%',
         backdropFilter: 'blur(10px)',
-        bgcolor: 'rgba(255, 255, 255, 0.1)',
+        bgcolor: 'rgba(0, 0, 0, 0.86)',
         borderTop: '1px solid rgba(255, 255, 255, 0.2)',
         p: 2,
         textAlign: 'center',
@@ -244,7 +244,7 @@ const Homepage = () => {
           </Box>
           <Box display="flex" alignItems="center" gap={1}>
             <PhoneIcon color="primary" />
-            <Typography>+91 1234567890</Typography>
+            <Typography color="red">+91 1234567890</Typography>
           </Box>
           <Box display="flex" alignItems="center" gap={1}>
             <Link 
@@ -262,7 +262,7 @@ const Homepage = () => {
                 transition: 'all 0.3s ease',
                 '&:hover': {
                   transform: 'scale(1.05)',
-                  boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+                  boxShadow: '0 4px 15px rgb(255, 250, 250)',
                 }
               }}
             >
@@ -279,7 +279,7 @@ const Homepage = () => {
         </Stack>
       </Box>
 
-      <Box sx={{ mb: 20 }} />
+      
 
       <style>{`
         @keyframes pulse {
