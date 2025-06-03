@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build --emptyOutDir",
+    "build": "vite build --emptyOutDir --force",
     "preview": "vite preview",
-    "lint": "eslint . --ext js,jsx --quiet --fix"
+    "lint": "eslint . --ext js,jsx --quiet --fix",
+    "vercel-build": "vite build --emptyOutDir --force"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

@@ -9,46 +9,19 @@
       }
     }
   ],
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "https://chatgpt-clone-br89.onrender.com/api/$1"
-    },
-    {
-      "source": "/gemini/(.*)",
-      "destination": "https://chatgpt-clone-br89.onrender.com/gemini/$1"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ],
   "routes": [
-    {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+    { "handle": "filesystem" },
+    { "src": "/api/(.*)", "dest": "https://chatgpt-clone-br89.onrender.com/api/$1" },
+    { "src": "/gemini/(.*)", "dest": "https://chatgpt-clone-br89.onrender.com/gemini/$1" },
+    { "src": "/.*", "dest": "/index.html" }
   ],
   "headers": [
     {
-      "source": "/(.*)",
+      "source": "/.*",
       "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET,POST,PUT,DELETE,OPTIONS"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "X-Requested-With, Content-Type, Authorization"
-        }
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,PUT,DELETE,OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "X-Requested-With, Content-Type, Authorization" }
       ]
     }
   ],
