@@ -12,10 +12,12 @@ export default defineConfig({
   base: './',
   plugins: [react()],
   server: {
+    port: 3000,
+    open: true,
     proxy: {
       '/api': {
         target: process.env.NODE_ENV === 'production'
-          ? 'https://chatgpt-clone-br89.onrender.com' // Your Render backend URL
+          ? 'https://chatgpt-clone-br89.onrender.com'
           : 'http://localhost:8080',
         changeOrigin: true,
         secure: true,
@@ -25,13 +27,29 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
+    emptyOutDir: true,
     sourcemap: true,
     rollupOptions: {
-      // Remove external, or only externalize true runtime dependencies (e.g., CDN libs)
-      external: [] // Or leave it out entirely
+      input: {
+        main: resolve(__dirname, 'index.html')
+      },
+      output: {
+        entryFileNames: 'assets/[name].[hash].js',
+        chunkFileNames: 'assets/[name].[hash].js',
+        assetFileNames: 'assets/[name].[hash].[ext]'
+      }
+    },
+    commonjsOptions: {
+      include: /node_modules/
     }
   },
   define: {
-    'process.env': process.env
+    'process.env': process.env,
+    'import.meta.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production')
+  },
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, 'src')
+    }
   }
 });

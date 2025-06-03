@@ -5,27 +5,60 @@
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist"
+        "distDir": "dist",
+        "zeroConfig": true
       }
     }
   ],
   "routes": [
-    { "handle": "filesystem" },
-    { "src": "/api/(.*)", "dest": "https://chatgpt-clone-br89.onrender.com/api/$1" },
-    { "src": "/gemini/(.*)", "dest": "https://chatgpt-clone-br89.onrender.com/gemini/$1" },
-    { "src": "/.*", "dest": "/index.html" }
+    {
+      "src": "/api/(.*)",
+      "dest": "https://chatgpt-clone-br89.onrender.com/api/$1"
+    },
+    {
+      "src": "/gemini/(.*)",
+      "dest": "https://chatgpt-clone-br89.onrender.com/gemini/$1"
+    },
+    {
+      "src": "^/(assets|_app|_error|_document|api|gemini|favicon.ico|manifest.json|robots.txt|sitemap.xml|.*\\.(js|css|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot))",
+      "dest": "/$1"
+    },
+    {
+      "src": ".*",
+      "dest": "/index.html"
+    }
   ],
+  "buildCommand": "vite build",
+  "installCommand": "npm install",
+  "outputDirectory": "dist",
+  "framework": "vite",
   "headers": [
     {
-      "source": "/.*",
+      "source": "/_next/static/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
       "headers": [
         { "key": "Access-Control-Allow-Origin", "value": "*" },
         { "key": "Access-Control-Allow-Methods", "value": "GET,POST,PUT,DELETE,OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "X-Requested-With, Content-Type, Authorization" }
+        { "key": "Access-Control-Allow-Headers", "value": "X-Requested-With, Content-Type, Authorization, Accept" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
       ]
     }
   ],
   "env": {
+    "NODE_ENV": "production",
     "VITE_API_URL": "https://chatgpt-clone-br89.onrender.com"
-  }
+  },
+  "regions": ["bom1"],
+  "public": true
 }
