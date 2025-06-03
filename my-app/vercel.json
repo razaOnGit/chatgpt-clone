@@ -1,13 +1,36 @@
 {
   "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "https://chatgpt-clone-br89.onrender.com/api/:path*"
+      "source": "/api/(.*)",
+      "destination": "https://chatgpt-clone-br89.onrender.com/api/$1"
     },
     {
-      "source": "/gemini/:path*",
-      "destination": "https://chatgpt-clone-br89.onrender.com/gemini/:path*"
+      "source": "/gemini/(.*)",
+      "destination": "https://chatgpt-clone-br89.onrender.com/gemini/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ],
   "headers": [
