@@ -244,7 +244,7 @@ const Homepage = () => {
           </Box>
           <Box display="flex" alignItems="center" gap={1}>
             <PhoneIcon color="primary" />
-            <Typography color="red">+91 1234567890</Typography>
+            <Typography color="red">+91 9608124676</Typography>
           </Box>
           <Box display="flex" alignItems="center" gap={1}>
             <Link 
