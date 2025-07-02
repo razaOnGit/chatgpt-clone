@@ -10,12 +10,6 @@ export default defineConfig({
   root: __dirname,
   publicDir: resolve(__dirname, 'public'),
   base: './',
-  build: {
-    outDir: 'dist',
-    rollupOptions: {
-      input: resolve(__dirname, 'public/index.html')
-    }
-  },
   plugins: [react()],
   server: {
     port: 3000,
@@ -37,16 +31,13 @@ export default defineConfig({
     sourcemap: true,
     rollupOptions: {
       input: {
-        main: resolve(__dirname, 'index.html')
+        main: resolve(__dirname, 'index.html') // Changed from public/index.html
       },
       output: {
         entryFileNames: 'assets/[name].[hash].js',
         chunkFileNames: 'assets/[name].[hash].js',
         assetFileNames: 'assets/[name].[hash].[ext]'
       }
-    },
-    commonjsOptions: {
-      include: /node_modules/
     }
   },
   define: {
