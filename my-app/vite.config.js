@@ -10,6 +10,12 @@ export default defineConfig({
   root: __dirname,
   publicDir: resolve(__dirname, 'public'),
   base: './',
+  build: {
+    outDir: 'dist',
+    rollupOptions: {
+      input: resolve(__dirname, 'public/index.html')
+    }
+  },
   plugins: [react()],
   server: {
     port: 3000,
