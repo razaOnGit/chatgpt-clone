@@ -1,14 +1,8 @@
 import { defineConfig } from 'vite';
-import { fileURLToPath } from 'url';
-import { dirname, resolve } from 'path';
+import { resolve } from 'path';
 import react from '@vitejs/plugin-react';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
 export default defineConfig({
-  root: __dirname,
-  publicDir: resolve(__dirname, 'public'),
   base: './',
   plugins: [react()],
   server: {
@@ -30,9 +24,6 @@ export default defineConfig({
     emptyOutDir: true,
     sourcemap: true,
     rollupOptions: {
-      input: {
-        main: resolve(__dirname, 'index.html') // Changed from public/index.html
-      },
       output: {
         entryFileNames: 'assets/[name].[hash].js',
         chunkFileNames: 'assets/[name].[hash].js',
