@@ -3,7 +3,7 @@ import { resolve } from 'path';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  base: '/',
+  base: process.env.NODE_ENV === 'production' ? '/my-app/' : '/',
   plugins: [react()],
   server: {
     port: 3000,
@@ -22,7 +22,8 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    sourcemap: true,
+    sourcemap: false,
+    manifest: true,
     rollupOptions: {
       output: {
         entryFileNames: 'assets/[name].[hash].js',
