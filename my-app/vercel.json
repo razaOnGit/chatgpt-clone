@@ -6,16 +6,17 @@
       "use": "@vercel/static-build",
       "config": {
         "distDir": "dist",
-        "buildCommand": "npm run build",
-        "zeroConfig": true
+        "buildCommand": "npm run build"
       }
     }
   ],
-  "framework": "vite",
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "https://chatgpt-clone-br89.onrender.com/api/$1"
+      "dest": "https://chatgpt-clone-br89.onrender.com/api/$1",
+      "headers": {
+        "Access-Control-Allow-Origin": "*"
+      }
     },
     {
       "src": "/assets/(.*)",
@@ -25,7 +26,10 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/index.html",
+      "headers": {
+        "Cache-Control": "public, max-age=0, must-revalidate"
+      }
     }
   ]
 }
