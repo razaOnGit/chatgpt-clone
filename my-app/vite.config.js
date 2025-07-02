@@ -3,7 +3,8 @@ import { resolve } from 'path';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  base: '/', // Changed from './' to '/'
+  base: process.env.NODE_ENV === 'production' ? '/' : './', // Dynamic base path
+   // Changed from './' to '/'
   plugins: [react()],
   server: {
     port: 3000,
