@@ -3,7 +3,7 @@ import { resolve } from 'path';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  base: '', // ✅ for relative paths on Vercel
+  base: './', // ✅ for relative paths on Vercel
   plugins: [react()],
   server: {
     port: 3000,
