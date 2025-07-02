@@ -3,7 +3,7 @@ import { resolve } from 'path';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  base: './',
+  base: '/', // Changed from './' to '/'
   plugins: [react()],
   server: {
     port: 3000,
@@ -24,6 +24,9 @@ export default defineConfig({
     emptyOutDir: true,
     sourcemap: true,
     rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html') // Added this line
+      },
       output: {
         entryFileNames: 'assets/[name].[hash].js',
         chunkFileNames: 'assets/[name].[hash].js',
