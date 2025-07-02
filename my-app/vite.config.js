@@ -4,8 +4,6 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   base: '/',
-  root: './my-app', // Point to your app directory
-  publicDir: 'public',
   plugins: [react()],
   server: {
     port: 3000,
@@ -22,10 +20,15 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: '../dist', // Build outside my-app folder
+    outDir: 'dist',
     emptyOutDir: true,
+    sourcemap: true,
     rollupOptions: {
-      input: resolve(__dirname, 'index.html')
+      output: {
+        entryFileNames: 'assets/[name].[hash].js',
+        chunkFileNames: 'assets/[name].[hash].js',
+        assetFileNames: 'assets/[name].[hash].[ext]'
+      }
     }
   },
   resolve: {
