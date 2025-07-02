@@ -3,7 +3,7 @@ import { resolve } from 'path';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  base: './',
+  base: './', // ✅ for relative paths on Vercel
   plugins: [react()],
   server: {
     port: 3000,
@@ -25,6 +25,8 @@ export default defineConfig({
     sourcemap: false,
     manifest: true,
     rollupOptions: {
+      // ✅ Tell Vite to build starting from this HTML
+      input: resolve(__dirname, 'index.html'),
       output: {
         entryFileNames: 'assets/[name].[hash].js',
         chunkFileNames: 'assets/[name].[hash].js',
