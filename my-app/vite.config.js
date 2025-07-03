@@ -3,7 +3,7 @@ import { resolve } from 'path';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
- base:'./',
+  base: '/', // Changed from './' to absolute path for Vercel
   plugins: [react()],
   server: {
     port: 3000,
@@ -14,7 +14,7 @@ export default defineConfig({
           ? 'https://chatgpt-clone-br89.onrender.com'
           : 'http://localhost:8080',
         changeOrigin: true,
-        secure: true,
+        secure: process.env.NODE_ENV === 'production', // Only secure in production
         rewrite: (path) => path.replace(/^\/api/, '')
       }
     }
@@ -22,21 +22,28 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    sourcemap: false,
+    sourcemap: process.env.NODE_ENV !== 'production', // Sourcemaps in dev only
     manifest: true,
     rollupOptions: {
-      // ✅ Tell Vite to build starting from this HTML
       input: resolve(__dirname, 'index.html'),
       output: {
-        entryFileNames: 'assets/[name].[hash].js',
-        chunkFileNames: 'assets/[name].[hash].js',
-        assetFileNames: 'assets/[name].[hash].[ext]'
+        entryFileNames: 'assets/[name]-[hash].js', // Added dash for better cache busting
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
+        manualChunks: {
+          react: ['react', 'react-dom'],
+          vendor: ['lodash', 'axios'] // Add other large dependencies here
+        }
       }
     }
   },
   resolve: {
     alias: {
-      '@': resolve(__dirname, 'src')
+      '@': resolve(__dirname, 'src'),
+      '~': resolve(__dirname, './') // Root alias
     }
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom'] // Pre-bundle these for faster dev
   }
 });
