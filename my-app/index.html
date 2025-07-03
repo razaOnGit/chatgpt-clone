@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#4caf50" />
     <meta name="description" content="AI-powered chat application with multiple AI tools including image analysis, code generation, and text processing" />
-
+    
     <!-- Favicon and App Icons -->
     <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png" />
@@ -14,6 +14,7 @@
     <link rel="manifest" href="/manifest.json" />
     <link rel="stylesheet" href="/src/styles/logo.css" />
 
+    <!-- Google Fonts -->
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
@@ -22,175 +23,331 @@
     <title>AI_Clone - Multiple AI Tools</title>
 
     <style>
+      /* Install button styles - simplified and smaller */
       #installButton {
         position: fixed;
-        bottom: 20px;
+        bottom: 80px;
         right: 20px;
-        padding: 12px 24px;
+        padding: 8px 16px;
         background: linear-gradient(45deg, #4ecdc4, #4caf50);
         color: white;
         border: none;
-        border-radius: 25px;
+        border-radius: 20px;
         font-family: 'Roboto', sans-serif;
-        font-weight: 500;
+        font-weight: 400;
+        font-size: 14px;
         cursor: pointer;
         display: none;
-        font-size: 16px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         transition: all 0.3s ease;
         z-index: 9999;
+        width: auto;
+        min-width: 140px;
         -webkit-tap-highlight-color: transparent;
         touch-action: manipulation;
       }
 
       #installButton:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
       }
 
+      /* Mobile styles - simplified */
       @media (max-width: 768px) {
         #installButton {
-          bottom: 30px;
-          right: 50%;
-          transform: translateX(50%);
-          padding: 16px 32px;
-          font-size: 16px;
-          border-radius: 30px;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        }
-
-        #installButton.ios-prompt {
-          bottom: 0;
-          right: 0;
-          width: 100%;
-          border-radius: 20px 20px 0 0;
-          padding: 20px;
-          background: rgba(33, 33, 33, 0.95);
-          backdrop-filter: blur(10px);
+          bottom: 70px;
+          right: 16px;
+          padding: 8px 16px;
+          font-size: 13px;
+          min-width: 120px;
         }
       }
 
+      /* Android-specific styles - simplified */
+      #installButton.android-prompt {
+        background: linear-gradient(45deg, #3B82F6, #8B5CF6);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 2px 10px rgba(59, 130, 246, 0.25);
+      }
+
+      #installButton.android-prompt .icon {
+        font-size: 16px;
+      }
+
+      /* iOS prompt - kept minimal */
       #iosPrompt {
         display: none;
         position: fixed;
         bottom: 0;
         left: 0;
         right: 0;
-        padding: 20px;
+        padding: 16px;
         background: rgba(33, 33, 33, 0.95);
-        backdrop-filter: blur(10px);
+        backdrop-filter: blur(8px);
         color: white;
         text-align: center;
         z-index: 9999;
+        font-size: 14px;
       }
 
-      #installButton.android-prompt {
-        background: linear-gradient(45deg, #3B82F6, #8B5CF6);
+      /* Custom modal styles */
+      .install-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0,0,0,0.8);
         display: flex;
+        flex-direction: column;
+        justify-content: center;
         align-items: center;
-        gap: 8px;
-        font-size: 16px;
-        padding: 16px 32px;
-        border-radius: 30px;
-        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+        z-index: 10000;
+        padding: 20px;
+        color: white;
       }
 
-      #installButton.android-prompt .icon {
-        font-size: 20px;
+      .install-modal-content {
+        background: #2d3748;
+        padding: 25px;
+        border-radius: 12px;
+        max-width: 90%;
+        max-height: 90vh;
+        overflow: auto;
+        text-align: center;
       }
 
-      @media (max-width: 768px) {
-        #installButton.android-prompt {
-          width: auto;
-          min-width: 200px;
-          max-width: 80%;
-          margin: 0 auto;
-          bottom: 40px;
-        }
+      .install-modal-content h3 {
+        margin-top: 0;
+        color: #4caf50;
+      }
+
+      .install-modal-content ol,
+      .install-modal-content ul {
+        text-align: left;
+        padding-left: 20px;
+      }
+
+      .install-modal-content li {
+        margin-bottom: 8px;
+      }
+
+      .install-modal-button {
+        padding: 8px 20px;
+        background: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-top: 20px;
+        font-size: 14px;
       }
     </style>
   </head>
   <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-
     <button id="installButton">
-      <span class="icon">📱</span> Install AI_Clone
+      <span class="icon">📱</span>
+      Install AI_Clone
     </button>
-
     <div id="iosPrompt">
       To install AI_Clone, tap <span class="share-icon">📲</span> and then "Add to Home Screen"
       <button onclick="this.parentElement.style.display='none'" style="margin-left: 10px; padding: 5px 10px; border-radius: 15px; border: 1px solid white;">
         Got it
       </button>
     </div>
-
     <script type="module" src="/src/main.jsx"></script>
 
+    <!-- PWA Install Handler -->
     <script>
+      // Enhanced platform detection
+      const detectPlatform = () => {
+        const ua = navigator.userAgent.toLowerCase();
+        return {
+          isAndroid: /android/.test(ua),
+          isIOS: /iphone|ipad|ipod/.test(ua) && !window.MSStream,
+          isChrome: /chrome/.test(ua),
+          isSafari: /safari/.test(ua),
+          isStandalone: window.matchMedia('(display-mode: standalone)').matches,
+        };
+      };
+
+      // Detect browser type
+      const detectBrowser = () => {
+        const userAgent = navigator.userAgent;
+        if (userAgent.includes('Chrome')) return 'Chrome';
+        if (userAgent.includes('Firefox')) return 'Firefox';
+        if (userAgent.includes('Safari')) return 'Safari';
+        if (userAgent.includes('Edg')) return 'Edge';
+        return 'Other';
+      };
+
+      // Show custom modal with installation instructions
+      const showCustomModal = (content) => {
+        const modal = document.createElement('div');
+        modal.className = 'install-modal';
+        
+        modal.innerHTML = `
+          <div class="install-modal-content">
+            ${content}
+            <button class="install-modal-button" onclick="this.parentElement.parentElement.remove()">
+              Got It!
+            </button>
+          </div>
+        `;
+        
+        document.body.appendChild(modal);
+      };
+
+      // Initialize variables
       let deferredPrompt;
       const installButton = document.getElementById('installButton');
       const iosPrompt = document.getElementById('iosPrompt');
+      const platform = detectPlatform();
 
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-      const isAndroid = /Android/.test(navigator.userAgent);
+      // Show install prompt when appropriate
+      const showInstallPrompt = () => {
+        if (platform.isStandalone) return;
+        
+        if (platform.isIOS) {
+          iosPrompt.style.display = 'block';
+        } else {
+          installButton.style.display = 'flex';
+          installButton.classList.add('android-prompt');
+        }
+      };
 
+      // Register Service Worker
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(() => console.log('ServiceWorker registered'))
-            .catch(err => console.error('ServiceWorker failed:', err));
+        window.addEventListener('load', async () => {
+          try {
+            const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+            console.log('ServiceWorker registration successful');
+            
+            if (registration.waiting) {
+              console.log('Service worker waiting');
+            }
+            
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing;
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  console.log('New content is available; please refresh.');
+                }
+              });
+            });
+          } catch (error) {
+            console.error('ServiceWorker registration failed:', error);
+          }
         });
       }
 
-      // Show prompt on iOS
-      if (isIOS && !window.navigator.standalone) {
-        iosPrompt.style.display = 'block';
-      }
-
-      // Capture beforeinstallprompt
+      // Handle beforeinstallprompt event
       window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-
-        if (isAndroid) {
-          installButton.classList.add('android-prompt');
-          installButton.style.display = 'flex';
-        }
+        installButton.style.display = 'block';
+        console.log('beforeinstallprompt event fired');
       });
 
-      // On click: show prompt
+      // Handle install button click
       installButton.addEventListener('click', async () => {
-        if (!deferredPrompt) return;
-
-        try {
-          await deferredPrompt.prompt();
-          const { outcome } = await deferredPrompt.userChoice;
-          console.log('User install outcome:', outcome);
-        } catch (err) {
-          console.error('Install error:', err);
+        if (deferredPrompt) {
+          try {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`User response: ${outcome}`);
+            deferredPrompt = null;
+            installButton.style.display = 'none';
+            return;
+          } catch (err) {
+            console.error('Error showing install prompt:', err);
+          }
         }
 
-        deferredPrompt = null;
+        // Fallback instructions
+        if (platform.isIOS) {
+          showCustomModal(`
+            <h3>Install AI_Clone</h3>
+            <ol>
+              <li>Tap the <strong>Share</strong> button <span style="font-size: 1.2em;">📲</span></li>
+              <li>Scroll down and select <strong>"Add to Home Screen"</strong></li>
+              <li>Tap <strong>"Add"</strong> in the top right corner</li>
+            </ol>
+            <p>You'll then be able to open AI_Clone like a regular app!</p>
+          `);
+        } 
+        else if (platform.isAndroid) {
+          const browser = detectBrowser();
+          
+          if (browser === 'Chrome') {
+            showCustomModal(`
+              <h3>Install AI_Clone</h3>
+              <ol>
+                <li>Tap the <strong>3-dot menu</strong> <span style="font-size: 1.2em;">⋮</span></li>
+                <li>Select <strong>"Install app"</strong> or "Add to Home screen"</li>
+                <li>Confirm the installation</li>
+              </ol>
+            `);
+          }
+          else if (browser === 'Firefox') {
+            showCustomModal(`
+              <h3>Install AI_Clone</h3>
+              <ol>
+                <li>Tap the <strong>3-dot menu</strong> <span style="font-size: 1.2em;">⋮</span></li>
+                <li>Select <strong>"Install"</strong></li>
+                <li>Confirm the installation</li>
+              </ol>
+            `);
+          }
+          else {
+            showCustomModal(`
+              <h3>Install AI_Clone</h3>
+              <p>Look for the "Add to Home screen" option in your browser's menu.</p>
+              <p>On most Android browsers:</p>
+              <ol>
+                <li>Tap the browser menu (usually 3 dots or lines)</li>
+                <li>Look for "Add to Home screen" or "Install"</li>
+                <li>Follow the prompts to complete installation</li>
+              </ol>
+            `);
+          }
+        }
+        else {
+          showCustomModal(`
+            <h3>Install AI_Clone</h3>
+            <p>To install this app:</p>
+            <ul>
+              <li><strong>Chrome/Edge:</strong> Look for the "Install" button in the address bar</li>
+              <li><strong>Firefox:</strong> Use the "Install" option in the menu</li>
+              <li><strong>Safari:</strong> Use "File > Add to Desktop" (limited PWA support)</li>
+            </ul>
+          `);
+        }
+      });
+
+      // Track app installation
+      window.addEventListener('appinstalled', (event) => {
+        console.log('App installed');
         installButton.style.display = 'none';
       });
 
-      // After install
-      window.addEventListener('appinstalled', () => {
-        console.log('App successfully installed');
-        installButton.style.display = 'none';
-        iosPrompt.style.display = 'none';
+      // Check display mode changes
+      window.matchMedia('(display-mode: standalone)').addEventListener('change', (evt) => {
+        if (evt.matches) {
+          installButton.style.display = 'none';
+        } else {
+          showInstallPrompt();
+        }
       });
 
-      // iOS gesture hide
-      let touchStartY = 0;
-      iosPrompt.addEventListener('touchstart', (e) => {
-        touchStartY = e.touches[0].clientY;
-      });
-
-      iosPrompt.addEventListener('touchmove', (e) => {
-        const diff = touchStartY - e.touches[0].clientY;
-        if (diff > 50) iosPrompt.style.display = 'none';
-      });
+      // Show prompt on initial load after a short delay
+      setTimeout(() => {
+        showInstallPrompt();
+      }, 3000);
     </script>
   </body>
 </html>
