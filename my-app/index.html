@@ -91,59 +91,6 @@
         z-index: 9999;
         font-size: 14px;
       }
-
-      /* Custom modal styles */
-      .install-modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: rgba(0,0,0,0.8);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        z-index: 10000;
-        padding: 20px;
-        color: white;
-      }
-
-      .install-modal-content {
-        background: #2d3748;
-        padding: 25px;
-        border-radius: 12px;
-        max-width: 90%;
-        max-height: 90vh;
-        overflow: auto;
-        text-align: center;
-      }
-
-      .install-modal-content h3 {
-        margin-top: 0;
-        color: #4caf50;
-      }
-
-      .install-modal-content ol,
-      .install-modal-content ul {
-        text-align: left;
-        padding-left: 20px;
-      }
-
-      .install-modal-content li {
-        margin-bottom: 8px;
-      }
-
-      .install-modal-button {
-        padding: 8px 20px;
-        background: #4caf50;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        margin-top: 20px;
-        font-size: 14px;
-      }
     </style>
   </head>
   <body>
@@ -163,7 +110,7 @@
 
     <!-- PWA Install Handler -->
     <script>
-      // Enhanced platform detection
+      // Enhanced platform detection with force show option
       const detectPlatform = () => {
         const ua = navigator.userAgent.toLowerCase();
         return {
@@ -171,35 +118,8 @@
           isIOS: /iphone|ipad|ipod/.test(ua) && !window.MSStream,
           isChrome: /chrome/.test(ua),
           isSafari: /safari/.test(ua),
-          isStandalone: window.matchMedia('(display-mode: standalone)').matches,
+          isStandalone: false, // Always return false to force show button
         };
-      };
-
-      // Detect browser type
-      const detectBrowser = () => {
-        const userAgent = navigator.userAgent;
-        if (userAgent.includes('Chrome')) return 'Chrome';
-        if (userAgent.includes('Firefox')) return 'Firefox';
-        if (userAgent.includes('Safari')) return 'Safari';
-        if (userAgent.includes('Edg')) return 'Edge';
-        return 'Other';
-      };
-
-      // Show custom modal with installation instructions
-      const showCustomModal = (content) => {
-        const modal = document.createElement('div');
-        modal.className = 'install-modal';
-        
-        modal.innerHTML = `
-          <div class="install-modal-content">
-            ${content}
-            <button class="install-modal-button" onclick="this.parentElement.parentElement.remove()">
-              Got It!
-            </button>
-          </div>
-        `;
-        
-        document.body.appendChild(modal);
       };
 
       // Initialize variables
@@ -208,15 +128,23 @@
       const iosPrompt = document.getElementById('iosPrompt');
       const platform = detectPlatform();
 
-      // Show install prompt when appropriate
+      // Always show install prompt
       const showInstallPrompt = () => {
-        if (platform.isStandalone) return;
-        
         if (platform.isIOS) {
           iosPrompt.style.display = 'block';
         } else {
           installButton.style.display = 'flex';
           installButton.classList.add('android-prompt');
+          
+          // Force button visibility
+          Object.assign(installButton.style, {
+            position: 'fixed',
+            bottom: '80px',
+            right: '20px',
+            display: 'flex',
+            opacity: '1',
+            visibility: 'visible'
+          });
         }
       };
 
@@ -227,10 +155,12 @@
             const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
             console.log('ServiceWorker registration successful');
             
+            // Track the waiting service worker if there is one
             if (registration.waiting) {
               console.log('Service worker waiting');
             }
             
+            // Check for updates
             registration.addEventListener('updatefound', () => {
               const newWorker = registration.installing;
               newWorker.addEventListener('statechange', () => {
@@ -247,107 +177,58 @@
 
       // Handle beforeinstallprompt event
       window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent the default prompt
         e.preventDefault();
+        
+        // Store the event for later use
         deferredPrompt = e;
+        
+        // Show the install button
         installButton.style.display = 'block';
+        
+        // Log that the install prompt is available
         console.log('beforeinstallprompt event fired');
       });
 
       // Handle install button click
       installButton.addEventListener('click', async () => {
-        if (deferredPrompt) {
-          try {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            console.log(`User response: ${outcome}`);
-            deferredPrompt = null;
-            installButton.style.display = 'none';
-            return;
-          } catch (err) {
-            console.error('Error showing install prompt:', err);
+        if (!deferredPrompt) {
+          // Fallback installation instructions
+          if (platform.isAndroid) {
+            alert('To install: tap browser menu (⋮) and select "Add to Home screen"');
+          } else {
+            alert('To install: use browser menu to add this app to your home screen');
           }
+          return;
         }
 
-        // Fallback instructions
-        if (platform.isIOS) {
-          showCustomModal(`
-            <h3>Install AI_Clone</h3>
-            <ol>
-              <li>Tap the <strong>Share</strong> button <span style="font-size: 1.2em;">📲</span></li>
-              <li>Scroll down and select <strong>"Add to Home Screen"</strong></li>
-              <li>Tap <strong>"Add"</strong> in the top right corner</li>
-            </ol>
-            <p>You'll then be able to open AI_Clone like a regular app!</p>
-          `);
-        } 
-        else if (platform.isAndroid) {
-          const browser = detectBrowser();
-          
-          if (browser === 'Chrome') {
-            showCustomModal(`
-              <h3>Install AI_Clone</h3>
-              <ol>
-                <li>Tap the <strong>3-dot menu</strong> <span style="font-size: 1.2em;">⋮</span></li>
-                <li>Select <strong>"Install app"</strong> or "Add to Home screen"</li>
-                <li>Confirm the installation</li>
-              </ol>
-            `);
-          }
-          else if (browser === 'Firefox') {
-            showCustomModal(`
-              <h3>Install AI_Clone</h3>
-              <ol>
-                <li>Tap the <strong>3-dot menu</strong> <span style="font-size: 1.2em;">⋮</span></li>
-                <li>Select <strong>"Install"</strong></li>
-                <li>Confirm the installation</li>
-              </ol>
-            `);
-          }
-          else {
-            showCustomModal(`
-              <h3>Install AI_Clone</h3>
-              <p>Look for the "Add to Home screen" option in your browser's menu.</p>
-              <p>On most Android browsers:</p>
-              <ol>
-                <li>Tap the browser menu (usually 3 dots or lines)</li>
-                <li>Look for "Add to Home screen" or "Install"</li>
-                <li>Follow the prompts to complete installation</li>
-              </ol>
-            `);
-          }
-        }
-        else {
-          showCustomModal(`
-            <h3>Install AI_Clone</h3>
-            <p>To install this app:</p>
-            <ul>
-              <li><strong>Chrome/Edge:</strong> Look for the "Install" button in the address bar</li>
-              <li><strong>Firefox:</strong> Use the "Install" option in the menu</li>
-              <li><strong>Safari:</strong> Use "File > Add to Desktop" (limited PWA support)</li>
-            </ul>
-          `);
-        }
-      });
-
-      // Track app installation
-      window.addEventListener('appinstalled', (event) => {
-        console.log('App installed');
+        // Show the install prompt
+        deferredPrompt.prompt();
+        
+        // Wait for the user to respond to the prompt
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`User response to the install prompt: ${outcome}`);
+        
+        // Clear the deferredPrompt variable
+        deferredPrompt = null;
+        
+        // Hide the install button
         installButton.style.display = 'none';
       });
 
-      // Check display mode changes
-      window.matchMedia('(display-mode: standalone)').addEventListener('change', (evt) => {
-        if (evt.matches) {
-          installButton.style.display = 'none';
-        } else {
-          showInstallPrompt();
-        }
+      // Keep button visible even after installation
+      window.addEventListener('appinstalled', (event) => {
+        console.log('App installed');
+        showInstallPrompt(); // Force show prompt again
       });
 
-      // Show prompt on initial load after a short delay
-      setTimeout(() => {
-        showInstallPrompt();
-      }, 3000);
+      // Override display mode changes
+      window.matchMedia('(display-mode: standalone)').addEventListener('change', (evt) => {
+        showInstallPrompt(); // Always show prompt
+      });
+
+      // Show prompt on initial load
+      showInstallPrompt();
     </script>
   </body>
 </html>
