@@ -1,3 +1,8 @@
+// Ensure compatibility for older modules that expect `SlowBuffer` (Node 26 removal fix)
+if (typeof global.SlowBuffer === 'undefined') {
+  global.SlowBuffer = Buffer;
+}
+
 const dotenv = require("dotenv");
 const colors = require("colors");
 
