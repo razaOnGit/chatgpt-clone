@@ -108,37 +108,51 @@ exports.generateParagraph = async (req, res) => {
 };
 
 // ======================================
-// AI CHAT
+// AI CHAT (multi-turn, Gemini SDK format)
 // ======================================
 exports.chatWithAI = async (req, res) => {
   try {
-    const { message, conversationHistory = [] } = req.body;
+    const { message, conversationHistory } = req.body;
 
-    if (!message) {
+    if (!message || typeof message !== "string") {
       return res.status(400).json({
         success: false,
-        message: "Please provide message",
+        message: "Please provide a valid message string",
       });
     }
 
+    // 1. Map history into Gemini standard format (user vs model)
+    const formattedHistory = (conversationHistory || []).map((msg) => ({
+      role: msg.role === "user" ? "user" : "model",
+      parts: [{ text: msg.content }],
+    }));
+
+    // 2. Start chat with the provided history
     const chat = model.startChat({
-      history: conversationHistory.map((msg) => ({
-        role: msg.role === "assistant" ? "model" : msg.role,
-        parts: [{ text: msg.content }],
-      })),
+      history: formattedHistory,
     });
 
+    // 3. Send the new message
     const result = await chat.sendMessage(message);
+    const aiResponseText = result.response.text();
+
+    // 4. Pack updated history to match frontend state shape
+    const updatedHistory = [
+      ...(conversationHistory || []),
+      { role: "user", content: message },
+      { role: "model", content: aiResponseText },
+    ];
 
     res.status(200).json({
       success: true,
-      reply: result.response.text(),
+      conversationHistory: updatedHistory,
     });
 
   } catch (error) {
+    console.error("Gemini Chat Error:", error.stack || error);
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: error.message || "Error generating chat response",
     });
   }
 };
