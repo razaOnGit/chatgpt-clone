@@ -32,7 +32,7 @@ const JsConverter = () => {
     setError("");
     try {
       const { data } = await axios.post("/api/gemini/code", {
-        description: text
+        prompt: text
       });
 
       if (data.success) {

@@ -1,330 +1,287 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const colors = require("colors");
 
-// Verify API key with better error handling
-const initializeGemini = () => {
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-    
-    if (!GEMINI_API_KEY) {
-        console.error("GEMINI_API_KEY is missing in environment variables".red);
-        process.exit(1);
-    }
+// Gemini Config
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-    try {
-        const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-        console.log("Gemini API initialized successfully".green);
-        return genAI;
-    } catch (error) {
-        console.error("Failed to initialize Gemini API:".red, error);
-        process.exit(1);
-    }
-};
+const model = genAI.getGenerativeModel({
+  model: "gemini-2.5-flash",
+});
 
-const genAI = initializeGemini();
-
-// Updated test function with proper error handling
-const testGeminiConnection = async () => {
-  try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Updated model name
-    
-    // Test with a simple prompt and proper response handling
-    const result = await model.generateContent("Hello");
-    
-    if (!result || !result.response) {
-      throw new Error("No response received from Gemini API");
-    }
-
-    const response = await result.response;
-    console.log("Gemini API connection test successful".green);
-    console.log("Response received:", response.text());
-    
-  } catch (error) {
-    console.error("\nGemini API connection test failed:".red);
-    console.error("Error:", error.message);
-    
-    if (error.message.includes('API key')) {
-      console.log("\nAPI Key Issue:".yellow);
-      console.log("1. Verify the API key in your .env file".yellow);
-      console.log("2. Make sure the key has not expired".yellow);
-      console.log("3. Check if the key has proper permissions".yellow);
-    } else if (error.message.includes('quota')) {
-      console.log("\nQuota Issue:".yellow);
-      console.log("1. Check your API quota limits".yellow);
-      console.log("2. Verify billing is enabled".yellow);
-    } else {
-      console.log("\nTroubleshooting Steps:".yellow);
-      console.log("1. Check if your IP is allowed".yellow);
-      console.log("2. Verify you're in a supported region".yellow);
-      console.log("3. Ensure the API is properly enabled in Google Cloud Console".yellow);
-    }
-    
-    process.exit(1);
-  }
-};
-
-// Test connection on startup
-testGeminiConnection();
-
-// ...rest of your existing exports...
-
-// Text Summarization (Long to Short)
+// ======================================
+// TEXT SUMMARIZATION
+// ======================================
 exports.summarizeText = async (req, res) => {
   try {
     const { text } = req.body;
+
     if (!text) {
       return res.status(400).json({
         success: false,
-        message: "Please provide text to summarize"
+        message: "Please provide text",
       });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Updated model name
-    const prompt = `Summarize this text in a concise way:\n${text}`;
-    
+    const prompt = `Summarize this text:\n${text}`;
+
     const result = await model.generateContent(prompt);
-    const summary = result.response.text();
 
     res.status(200).json({
       success: true,
-      summary
+      summary: result.response.text(),
     });
+
   } catch (error) {
-    console.error("Summarization Error:", error);
-    res.status(500).json({
+    // 1. CRITICAL: Log the real, raw error to your terminal console so you can see it
+    console.error('--- DETAILED GEMINI API ERROR ---');
+    console.error(error);
+    console.error('---------------------------------');
+
+    // 2. Check if the error explicitly carries an HTTP 429 status code
+    const upstreamStatus = error.status || (error.response && error.response.status);
+    // Only return a 429 if the upstream status is strictly 429 or the message explicitly says "quota exceeded"
+    const isActualRateLimit = upstreamStatus === 429 || /quota exceeded|too many requests/i.test(error.message);
+    const statusCode = isActualRateLimit ? 429 : 500;
+
+    let retrySeconds;
+    try {
+      const m = (error.message || '').match(/Please retry in ([0-9.]+)s/i);
+      if (m && m[1]) retrySeconds = Math.ceil(Number(m[1]));
+    } catch (e) {}
+    if (retrySeconds && isActualRateLimit) res.setHeader('Retry-After', String(retrySeconds));
+
+    const payload = {
       success: false,
-      message: "Error in summarization",
-      error: error.message
-    });
+      message: error.message,
+    };
+    if (process.env.NODE_ENV !== 'production') payload.stack = error.stack;
+
+    res.status(statusCode).json(payload);
   }
 };
 
-// Paragraph Generation
+// ======================================
+// PARAGRAPH GENERATOR
+// ======================================
 exports.generateParagraph = async (req, res) => {
   try {
-    const { topic, tone = "informative", length = "medium" } = req.body;
+    console.log('generateParagraph body:', req.body);
+
+    // Accept multiple possible field names from frontend for robustness
+    const { tone = "informative", length = "medium" } = req.body;
+    const topic = req.body.topic || req.body.text || req.body.prompt;
+
     if (!topic) {
       return res.status(400).json({
         success: false,
-        message: "Please provide a topic"
+        message: "Please provide a topic",
       });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Updated model name
     const prompt = `Write a ${length} paragraph about ${topic} in a ${tone} tone.`;
-    
+
     const result = await model.generateContent(prompt);
-    const paragraph = result.response.text();
 
     res.status(200).json({
       success: true,
-      paragraph
+      paragraph: result.response.text(),
     });
+
   } catch (error) {
-    console.error("Paragraph Generation Error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error generating paragraph",
-      error: error.message
-    });
+    console.error('Paragraph Generation Error:', error.stack || error);
+
+    // Map upstream quota/429 errors to 429 and set Retry-After when available
+    const upstreamStatus = error.response && error.response.status;
+    const statusCode = upstreamStatus === 429 || /quota|too many requests|rate limit/i.test(error.message) ? 429 : 500;
+
+    let retrySeconds;
+    try {
+      const m = (error.message || '').match(/Please retry in ([0-9.]+)s/i);
+      if (m && m[1]) retrySeconds = Math.ceil(Number(m[1]));
+    } catch (e) {}
+    if (retrySeconds) res.setHeader('Retry-After', String(retrySeconds));
+
+    const payload = { success: false, message: error.message };
+    if (process.env.NODE_ENV !== 'production') payload.stack = error.stack;
+
+    res.status(statusCode).json(payload);
   }
 };
 
-// AI Chatbot
+// ======================================
+// AI CHAT
+// ======================================
 exports.chatWithAI = async (req, res) => {
   try {
     const { message, conversationHistory = [] } = req.body;
+
     if (!message) {
       return res.status(400).json({
         success: false,
-        message: "Please provide a message"
+        message: "Please provide message",
       });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Updated model name
     const chat = model.startChat({
-      history: conversationHistory.map(msg => ({
-        role: msg.role === "assistant" ? "model" : msg.role, // Map "assistant" to "model"
-        parts: [{ text: msg.content }] // Wrap content in an array
-
-      }))
+      history: conversationHistory.map((msg) => ({
+        role: msg.role === "assistant" ? "model" : msg.role,
+        parts: [{ text: msg.content }],
+      })),
     });
 
     const result = await chat.sendMessage(message);
-    const response = await result.response;
-    const text = response.text();
 
     res.status(200).json({
       success: true,
-      reply: text,
-      conversationHistory: [...conversationHistory, 
-        { role: "user", content: message },
-        { role: "assistant", content: text }
-      ]
+      reply: result.response.text(),
     });
+
   } catch (error) {
-    console.error("Chat Error:", error);
     res.status(500).json({
       success: false,
-      message: "Error in chat",
-      error: error.message
+      message: error.message,
     });
   }
 };
 
-// English to JavaScript Code Conversion
+// ======================================
+// JAVASCRIPT CODE GENERATOR
+// ======================================
 exports.convertToJavaScript = async (req, res) => {
   try {
-    const { description } = req.body;
-    if (!description) {
+    const { prompt } = req.body;
+
+    if (!prompt) {
       return res.status(400).json({
         success: false,
-        message: "Please provide code description"
+        message: "Please provide prompt",
       });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" }); // Updated model name
-    const prompt = `Convert this English description to JavaScript code:
-    Description: ${description}
-    Please provide clean, well-commented code.`;
-    
-    const result = await model.generateContent(prompt);
-    const code = result.response.text();
+    const finalPrompt = `
+Convert this into JavaScript code:
+
+${prompt}
+
+Provide clean code.
+`;
+
+    const result = await model.generateContent(finalPrompt);
 
     res.status(200).json({
       success: true,
-      code
+      code: result.response.text(),
     });
+
   } catch (error) {
-    console.error("Code Conversion Error:", error);
     res.status(500).json({
       success: false,
-      message: "Error converting to code",
-      error: error.message
+      message: error.message,
     });
   }
 };
 
-// Python Code Generation
+// ======================================
+// PYTHON CODE GENERATOR
+// ======================================
 exports.convertToPython = async (req, res) => {
   try {
-    const { description } = req.body;
-    if (!description) {
+    const { prompt } = req.body;
+
+    if (!prompt) {
       return res.status(400).json({
         success: false,
-        message: "Please provide code description"
+        message: "Please provide prompt",
       });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const prompt = `Convert this English description to Python code:
-    Description: ${description}
-    Please provide clean, well-commented Python code.`;
-    
-    const result = await model.generateContent(prompt);
-    const code = result.response.text();
+    const finalPrompt = `
+Convert this into Python code:
+
+${prompt}
+
+Provide clean code.
+`;
+
+    const result = await model.generateContent(finalPrompt);
 
     res.status(200).json({
       success: true,
-      code
+      code: result.response.text(),
     });
+
   } catch (error) {
-    console.error("Code Conversion Error:", error);
     res.status(500).json({
       success: false,
-      message: "Error converting to Python code",
-      error: error.message
+      message: error.message,
     });
   }
 };
 
-// Image to Text (Updated)
-exports.imageToText = async (req, res) => {
+// ======================================
+// ======================================
+// UNIVERSAL MULTIMODAL ANALYZER (ANTI-CRASH PRO)
+// ======================================
+exports.ImageToText = async (req, res) => {
   try {
-    const { imageUrl } = req.body;
+    const { imageUrl, prompt } = req.body;
 
-    // Input validation
-    if (!imageUrl) {
+    // 1. Basic check for body presence
+    if (!imageUrl || typeof imageUrl !== "string" || !imageUrl.includes(",")) {
       return res.status(400).json({
         success: false,
-        message: "Please provide an image"
+        message: "Invalid payload format. Expected Base64 Data URL.",
       });
     }
 
-    // Handle different image formats (data URLs)
-    const isBase64Image = imageUrl.startsWith('data:image/');
-    const isPdfDataUrl = imageUrl.startsWith('data:application/pdf');
-
-    if (!isBase64Image && !isPdfDataUrl) {
+    // 2. Safe parsing wrapper to block split() runtime crashes
+    let base64Data, mimeType;
+    try {
+      const parts = imageUrl.split(",");
+      base64Data = parts[1];
+      mimeType = parts[0].split(";")[0].split(":")[1];
+    } catch (parseError) {
       return res.status(400).json({
         success: false,
-        message: "Invalid file format. Please provide a valid image or PDF."
+        message: "Failed to parse Media metadata strings correctly.",
       });
     }
 
-    // Extract the base64 data
-    const base64Data = imageUrl.split(',')[1];
-    const mimeType = imageUrl.split(';')[0].split(':')[1];
+    // 3. Audio dynamic normalization (Gemini core requirement)
+    // Agar webm format chromium ya mobile browser se aaye toh use fallback mapping milti hai
+    if (mimeType.includes("audio/webm")) {
+      mimeType = "audio/webm";
+    }
 
-    // Initialize Gemini Pro Vision model
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-vision" }); // Updated model name for vision
+    const finalPrompt = prompt?.trim() ? prompt : "Analyze and describe this content in detail.";
 
-    // Prepare prompt based on file type
-    const prompt = isPdfDataUrl 
-      ? "Analyze this PDF document and describe its contents in detail."
-      : "Describe this image in detail, including what you see, any text present, and the overall context.";
-
-    // Generate content using the model
+    // 4. API Call to Gemini (2.5 / 3.5 Flash)
     const result = await model.generateContent([
       {
         inlineData: {
           data: base64Data,
-          mimeType: mimeType
-        }
+          mimeType: mimeType,
+        },
       },
-      prompt
+      finalPrompt,
     ]);
 
-    const response = await result.response;
-    const description = response.text();
+    // 5. Secure extraction of textual result
+    const responseText = result?.response ? result.response.text() : "No response generated from AI.";
 
     res.status(200).json({
       success: true,
-      description,
-      fileType: isPdfDataUrl ? 'pdf' : 'image'
+      response: responseText,
     });
 
   } catch (error) {
-    console.error("Image/PDF Analysis Error:".red, error);
-    
-    // Enhanced error handling
-    let errorMessage = "Error processing file";
-    let statusCode = 500;
+    // Server logs the real error stack internally but never exposes raw internal breaks to user
+    console.error('--- SECURE MULTIMODAL ERROR LOG ---');
+    console.error(error.stack || error);
+    console.error('------------------------------------');
 
-    if (error.message.includes('API key')) {
-      errorMessage = "Authentication failed: Invalid API key";
-      statusCode = 401;
-    } else if (error.message.includes('Too Large')) {
-      errorMessage = "File size too large. Please use a smaller file.";
-      statusCode = 413;
-    } else if (error.message.includes('format')) {
-      errorMessage = "Unsupported file format";
-      statusCode = 415;
-    }
-
-    res.status(statusCode).json({
+    res.status(500).json({
       success: false,
-      message: errorMessage,
-      error: error.message
+      message: error.status === 429 ? "Rate limit reached. Try again later." : "Internal model processing failed cleanly.",
     });
   }
 };
-
-// Add a function to validate file size
-const validateFileSize = (base64String, maxSizeMB = 4) => {
-  const sizeInBytes = Buffer.from(base64String, 'base64').length;
-  const sizeInMB = sizeInBytes / (1024 * 1024);
-  return sizeInMB <= maxSizeMB;
-};
-
-// Update the routes to match the frontend
-exports.ImageToText = exports.imageToText; // Alias for consistent naming

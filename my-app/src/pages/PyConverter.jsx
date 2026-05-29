@@ -32,7 +32,7 @@ const PyConverter = () => {
     setError("");
     try {
       const { data } = await axios.post("/api/gemini/python", {
-        description: text
+        prompt: text
       });
 
       if (data.success) {

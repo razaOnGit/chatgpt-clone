@@ -8,6 +8,7 @@ const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const rateLimit = require("express-rate-limit");
 const connectDB = require("./config/db");
 const errorHandler = require("./middelwares/errorMiddleware");
 
@@ -29,16 +30,39 @@ const app = express();
 
 // Middlewares
 app.use(cors());
-app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+// Increase body size limits to support large inline media uploads
+app.use(express.json({ limit: "50mb" }));
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 app.use(morgan("dev"));
 app.use(errorHandler);
 
 // API routes
+// Mount auth routes under the standard API prefix.
 app.use("/api/v1/auth", authRoutes);
-// app.use("/v1/auth", authRoutes);
-// app.use("/gemini", geminiRoutes);
+
+// Backwards-compatible mount for clients still calling "/v1/auth" (pre-existing clients).
+app.use("/v1/auth", authRoutes);
 app.use("/api/gemini", geminiRoutes);
+// Backwards-compatible mount for clients calling "/gemini" without the "/api" prefix.
+app.use("/gemini", geminiRoutes);
+// Rate limiter for Gemini endpoints to protect quota
+const GEMINI_RATE_LIMIT_WINDOW_MS = parseInt(process.env.GEMINI_RATE_LIMIT_WINDOW_MS || '60000', 10);
+const GEMINI_RATE_LIMIT_MAX = parseInt(process.env.GEMINI_RATE_LIMIT_MAX || '15', 10);
+
+const geminiLimiter = rateLimit({
+  windowMs: GEMINI_RATE_LIMIT_WINDOW_MS,
+  max: GEMINI_RATE_LIMIT_MAX,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    res.setHeader('Retry-After', String(Math.ceil(GEMINI_RATE_LIMIT_WINDOW_MS / 1000)));
+    res.status(429).json({ success: false, message: 'Too many requests - try again later.' });
+  },
+});
+
+// Apply limiter to Gemini routes
+app.use('/api/gemini', geminiLimiter, geminiRoutes);
+app.use('/gemini', geminiLimiter, geminiRoutes);
 
 // Only start server in development
 // if (process.env.NODE_ENV !== 'production') {
